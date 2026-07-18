@@ -195,7 +195,7 @@
   }
   function setQuick(seconds){ stopTicker(); selectedSeconds=Math.max(5,Math.min(3600,seconds));remainingMs=durationMs=selectedSeconds*1000;state='ready'; $$('.preset-grid .steel-btn').forEach(b=>b.classList.toggle('selected',+b.dataset.seconds===selectedSeconds));render(); }
   function setPhase(next, announce=true){ phase=next; durationMs=remainingMs=(phase==='work'?values.work:values.rest)*1000; lastShown=null; if(announce){ tone(phase==='work'?880:520,.18,.2);speak(phase==='work'?`Work. Round ${currentRound}`:'Rest'); } render(); }
-  function tick(){ remainingMs=Math.max(0,targetTime-Date.now()); const shown=Math.ceil(remainingMs/1000); if(shown!==lastShown){ lastShown=shown; if(shown>0&&shown<=3) tone(560+shown*80,.09,.13); } render(); if(remainingMs<=0) completePhase(); }
+  function tick(){ remainingMs=Math.max(0,targetTime-Date.now()); const shown=Math.ceil(remainingMs/1000); if(shown!==lastShown){ lastShown=shown; if(shown>0&&shown<=5){ /* Louder five-second countdown: a strong main beep plus a lighter upper layer. */ tone(610+shown*55,.16,.46); tone(915+shown*45,.12,.22,.015); } } render(); if(remainingMs<=0) completePhase(); }
   function startTicker(){ clearInterval(ticker);targetTime=Date.now()+remainingMs;ticker=setInterval(tick,100);tick();requestWake(); }
   function stopTicker(){ clearInterval(ticker);ticker=null;releaseWake(); }
   function start(){ unlockAudio();app.classList.remove('finished'); if(state==='finished'){ reset(); } if(remainingMs<=0) reset();state='running';startTicker();render(); }
