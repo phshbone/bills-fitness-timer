@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0f0f0f">
-  <title>Fitness Timer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111419">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>bill's time</title>
   <style>
     @font-face {
       font-family: 'Bauhaus';
@@ -13,476 +15,177 @@
       font-style: normal;
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
 
+    :root {
+      --bg:#090b0e; --panel:#171b21; --panel2:#20262e; --edge:#4b5561;
+      --text:#f4f7fa; --muted:#9aa4ae; --green:#7f9982; --green-light:#aebcaf; --green-dark:#586f5b;
+      --silver:#c7ced3; --amber:#b8955d; --red:#a85f62; --rest:#71858b; --shadow:rgba(0,0,0,.55);
+      --progress:0deg; --accent:var(--green);
+    }
+    * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html,body { margin:0; min-height:100%; background:var(--bg); color:var(--text); }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
-      color: #e8e8e8;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 16px;
-      position: relative;
-      overflow: hidden;
+      min-height:100svh; overflow-x:hidden; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      padding:calc(14px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));
+      background:
+        radial-gradient(circle at 50% -10%, rgba(127,153,130,.16), transparent 38%),
+        repeating-linear-gradient(135deg, rgba(255,255,255,.018) 0 1px, transparent 1px 6px),
+        linear-gradient(180deg,#11151a,#080a0c 75%);
     }
-
-    body::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-image: 
-        repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(255,255,255,.03) 8px, rgba(255,255,255,.03) 9px),
-        repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(255,255,255,.03) 8px, rgba(255,255,255,.03) 9px),
-        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.2) 2px, rgba(0,0,0,.2) 4px),
-        repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,.2) 2px, rgba(0,0,0,.2) 4px);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 420px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .header {
-      font-family: 'Bauhaus', sans-serif;
-      font-size: 32px;
-      font-weight: normal;
-      text-align: center;
-      margin-bottom: 28px;
-      letter-spacing: 2px;
-      position: relative;
-    }
-
-    .header-text {
-      display: inline-block;
-    }
-
-    .header-bills {
-      color: #6B8E5F;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4), 
-                   4px 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    .header-time {
-      color: #e8e8e8;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4), 
-                   4px 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    .header-line {
-      display: flex;
-      width: 180px;
-      margin: 8px auto 0;
-      height: 3px;
-      gap: 0;
-    }
-
-    .header-line-left {
-      flex: 1;
-      background: #e8e8e8;
-    }
-
-    .header-line-right {
-      flex: 1;
-      background: #6B8E5F;
-    }
-
-    .timer-display {
-      background: linear-gradient(145deg, #1a1a1a 0%, #0f0f0f 100%);
-      border: 1px solid rgba(128, 128, 128, 0.3);
-      border-radius: 20px;
-      padding: 40px 24px;
-      margin-bottom: 32px;
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.5), 0 8px 32px rgba(0,0,0,0.7);
-      text-align: center;
-      position: relative;
-    }
-
-    .timer-display::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: 
-        linear-gradient(135deg, rgba(200,200,200,0.05) 0%, transparent 50%),
-        linear-gradient(315deg, rgba(100,100,100,0.05) 0%, transparent 50%);
-      border-radius: 20px;
-      pointer-events: none;
-    }
-
-    .timer-time {
-      font-size: 80px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      font-variant-numeric: tabular-nums;
-      color: #e8e8e8;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      line-height: 1;
-      margin-bottom: 8px;
-    }
-
-    .timer-status {
-      font-size: 14px;
-      color: #888;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    .controls {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .preset-btn {
-      background: linear-gradient(145deg, #2a2a2a 0%, #1f1f1f 100%);
-      border: 1px solid rgba(128, 128, 128, 0.4);
-      border-radius: 12px;
-      padding: 14px 12px;
-      font-size: 16px;
-      font-weight: 500;
-      color: #d8d8d8;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .preset-btn::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
-      pointer-events: none;
-    }
-
-    .preset-btn:active {
-      background: linear-gradient(145deg, #3a3a3a 0%, #2f2f2f 100%);
-      transform: scale(0.98);
-    }
-
-    .preset-btn:hover {
-      border-color: rgba(180, 180, 180, 0.6);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    }
-
-    .action-controls {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .plus-btn, .control-btn {
-      background: linear-gradient(145deg, #2a2a2a 0%, #1f1f1f 100%);
-      border: 1px solid rgba(128, 128, 128, 0.4);
-      border-radius: 12px;
-      padding: 16px 12px;
-      font-size: 16px;
-      font-weight: 600;
-      color: #b0b0b0;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .plus-btn::before, .control-btn::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
-      pointer-events: none;
-    }
-
-    .plus-btn:active, .control-btn:active {
-      background: linear-gradient(145deg, #3a3a3a 0%, #2f2f2f 100%);
-      transform: scale(0.98);
-    }
-
-    .plus-btn:hover, .control-btn:hover {
-      border-color: rgba(180, 180, 180, 0.6);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    }
-
-    .plus-btn:disabled, .control-btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-
-    .custom-section {
-      margin-top: 20px;
-      padding-top: 20px;
-      border-top: 1px solid rgba(128, 128, 128, 0.2);
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .custom-input {
-      flex: 1;
-      background: linear-gradient(145deg, #2a2a2a 0%, #1f1f1f 100%);
-      border: 1px solid rgba(128, 128, 128, 0.4);
-      border-radius: 12px;
-      padding: 12px 14px;
-      font-size: 16px;
-      font-weight: 500;
-      color: #d8d8d8;
-      transition: all 0.15s ease;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-    }
-
-    .custom-input::placeholder {
-      color: #666;
-    }
-
-    .custom-input:focus {
-      outline: none;
-      border-color: rgba(180, 180, 180, 0.6);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    }
-
-    .custom-set-btn {
-      background: linear-gradient(145deg, #2a2a2a 0%, #1f1f1f 100%);
-      border: 1px solid rgba(128, 128, 128, 0.4);
-      border-radius: 12px;
-      padding: 12px 16px;
-      font-size: 14px;
-      font-weight: 600;
-      color: #b0b0b0;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-      position: relative;
-      overflow: hidden;
-      white-space: nowrap;
-    }
-
-    .custom-set-btn::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
-      pointer-events: none;
-    }
-
-    .custom-set-btn:active {
-      background: linear-gradient(145deg, #3a3a3a 0%, #2f2f2f 100%);
-      transform: scale(0.98);
-    }
-
-    .custom-set-btn:hover {
-      border-color: rgba(180, 180, 180, 0.6);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    }
-
-    @media (prefers-reduced-motion: no-preference) {
-      .preset-btn, .plus-btn, .control-btn, .custom-input, .custom-set-btn {
-        transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-    }
+    body::before { content:""; position:fixed; inset:0; pointer-events:none; opacity:.28;
+      background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);
+      background-size:22px 22px; }
+    button,input { font:inherit; }
+    button { touch-action:manipulation; }
+    .app { width:min(100%,520px); margin:auto; }
+    .brand { display:flex; align-items:flex-end; justify-content:space-between; margin:0 4px 12px; }
+    .logo { font-family:Bauhaus,"Arial Black",sans-serif; font-size:clamp(30px,8vw,43px); line-height:.9; letter-spacing:-1px; text-transform:lowercase; }
+    .logo span { color:var(--green-light); text-shadow:0 2px 0 rgba(0,0,0,.65),1px 0 0 rgba(255,255,255,.14),0 0 14px rgba(199,206,211,.18); }
+    .tag { color:var(--muted); font-size:11px; letter-spacing:2px; text-transform:uppercase; padding-bottom:3px; }
+    .mode-tabs { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:6px; border:1px solid #343c46; border-radius:16px; background:#0e1115; box-shadow:inset 0 0 0 1px #050607,0 8px 24px var(--shadow); }
+    .mode-tab { border:0; border-radius:11px; padding:11px; color:#8e99a5; background:transparent; font-weight:800; letter-spacing:.7px; }
+    .mode-tab.active { color:#101511; border:1px solid #9eaaa0; background:linear-gradient(180deg,#aebcaf,#748d77); box-shadow:0 2px 0 #313a33,0 0 0 1px rgba(199,206,211,.24),0 0 16px rgba(199,206,211,.12),inset 0 1px rgba(255,255,255,.35); }
+    .stage { position:relative; margin:14px 0; padding:18px; border-radius:28px; border:1px solid #45505b;
+      background:linear-gradient(145deg,#262d35,#11151a 55%,#0d1014); box-shadow:inset 0 1px rgba(255,255,255,.08),inset 0 -20px 45px rgba(0,0,0,.28),0 18px 42px var(--shadow); overflow:hidden; }
+    .stage::before { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(115deg,rgba(255,255,255,.09),transparent 24% 76%,rgba(255,255,255,.025)); }
+    .phase { position:relative; z-index:2; text-align:center; color:var(--accent); font-size:13px; font-weight:900; letter-spacing:3px; text-transform:uppercase; min-height:18px; }
+    .dial { --size:min(72vw,330px); width:var(--size); aspect-ratio:1; margin:7px auto 4px; border-radius:50%; padding:12px;
+      background:conic-gradient(var(--accent) var(--progress),#303842 0); box-shadow:0 0 0 2px rgba(199,206,211,.24),0 5px 0 rgba(70,78,74,.78),0 0 20px rgba(199,206,211,.10),inset 0 0 18px #000; transition:background .18s linear; }
+    .dial-inner { width:100%; height:100%; border-radius:50%; display:grid; place-items:center; position:relative;
+      background:radial-gradient(circle at 50% 35%,#242b33,#0b0e12 72%); border:2px solid #0a0c0f; box-shadow:inset 0 0 42px #000,0 0 0 2px #515b66; }
+    .time { font-family:Bauhaus,"Arial Black",sans-serif; font-variant-numeric:tabular-nums; font-size:clamp(64px,19vw,104px); letter-spacing:-4px; line-height:.9; color:#f3f5f3; text-shadow:0 5px 18px #000,2px 2px 0 rgba(70,80,73,.95),-1px -1px 0 rgba(199,206,211,.32),0 0 13px rgba(199,206,211,.10); }
+    .status { margin-top:8px; color:var(--muted); font-size:12px; letter-spacing:2px; text-transform:uppercase; text-align:center; }
+    .round-strip { display:none; position:relative; z-index:2; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px; margin-top:6px; color:#bdc6ce; font-size:13px; }
+    .round-strip.show { display:grid; }
+    .round-strip .line { height:1px; background:linear-gradient(90deg,transparent,#505a65); }
+    .round-strip .line:last-child { transform:scaleX(-1); }
+    .panel { margin-bottom:12px; padding:14px; border:1px solid #343d47; border-radius:18px; background:linear-gradient(145deg,rgba(35,41,49,.94),rgba(15,18,23,.96)); box-shadow:inset 0 1px rgba(255,255,255,.05),0 10px 24px rgba(0,0,0,.3); }
+    .panel-title { margin:0 0 10px; color:#aab4bd; font-size:11px; font-weight:900; letter-spacing:2px; text-transform:uppercase; }
+    .preset-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    .steel-btn { position:relative; border:1px solid #4b5661; border-radius:12px; min-height:48px; color:#e7edf2; font-weight:800; background:linear-gradient(180deg,#303843,#191e24); box-shadow:inset 0 1px rgba(255,255,255,.12),inset 0 -5px 10px rgba(0,0,0,.2),0 4px 9px rgba(0,0,0,.32); }
+    .steel-btn:active { transform:translateY(1px); filter:brightness(1.12); }
+    .steel-btn.selected { color:#101511; border-color:#9eaaa0; background:linear-gradient(180deg,#aebcaf,#718a74); box-shadow:0 2px 0 #313a33,0 0 0 1px rgba(199,206,211,.22),0 0 14px rgba(199,206,211,.10),inset 0 1px rgba(255,255,255,.34); }
+    .adjust-row { display:grid; grid-template-columns:1fr 1.5fr 1fr; gap:8px; margin-top:9px; }
+    .adjust-row .steel-btn { font-size:18px; }
+    .custom-row { display:grid; grid-template-columns:1fr auto; gap:8px; margin-top:9px; }
+    .custom-input { min-width:0; border:1px solid #47525e; border-radius:12px; padding:0 13px; color:#fff; background:#0d1014; box-shadow:inset 0 3px 9px #000; }
+    .interval-panel { display:none; }
+    .interval-panel.show { display:block; }
+    .settings-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    .setting { text-align:center; padding:10px 6px; border:1px solid #3b4650; border-radius:13px; background:#101419; }
+    .setting label { display:block; color:#929da7; font-size:10px; font-weight:900; letter-spacing:1.3px; text-transform:uppercase; }
+    .stepper { display:grid; grid-template-columns:32px 1fr 32px; align-items:center; gap:2px; margin-top:7px; }
+    .stepper button { height:32px; border:1px solid #45515c; border-radius:9px; color:#dfe6eb; background:#242b33; font-size:18px; font-weight:900; }
+    .stepper output { font-family:Bauhaus,"Arial Black",sans-serif; font-size:24px; }
+    .main-controls { display:grid; grid-template-columns:1fr 1.7fr 1fr; gap:9px; margin-top:12px; }
+    .main-btn { border-radius:15px; min-height:58px; border:1px solid #4d5964; color:#cbd3da; font-weight:900; letter-spacing:.5px; background:linear-gradient(180deg,#303943,#171c22); box-shadow:inset 0 1px rgba(255,255,255,.12),0 8px 16px rgba(0,0,0,.35); }
+    .main-btn.primary { color:#101511; border-color:#9eaaa0; background:linear-gradient(180deg,#afbdaf,#708973); font-size:18px; box-shadow:0 3px 0 #303a32,0 0 0 1px rgba(199,206,211,.24),0 0 16px rgba(199,206,211,.10),inset 0 1px rgba(255,255,255,.38),0 8px 16px rgba(0,0,0,.4); }
+    .main-btn:active { transform:translateY(1px); }
+    .main-btn:disabled { opacity:.35; }
+    .options { display:flex; justify-content:center; gap:18px; margin-top:13px; color:#a5afb8; font-size:12px; }
+    .toggle { display:flex; align-items:center; gap:7px; }
+    .toggle input { width:18px; height:18px; accent-color:var(--green); }
+    .finished .stage { animation:finishFlash .7s ease-in-out 4; }
+    .warning { --accent:var(--amber); }
+    .resting { --accent:var(--rest); }
+    .finished { --accent:var(--red); }
+    @keyframes finishFlash { 50% { filter:brightness(1.28); box-shadow:0 0 0 2px rgba(199,206,211,.18),0 0 38px rgba(168,95,98,.28); } }
+    @media (max-height:700px) { .dial { --size:min(57vw,245px); } .stage{padding:12px}.panel{padding:11px}.main-btn{min-height:52px} }
+    @media (prefers-reduced-motion:reduce) { * { animation:none!important; transition:none!important; } }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <div class="header-text">
-        <span class="header-bills">bill's</span> <span class="header-time">time</span>
+  <main class="app" id="app">
+    <header class="brand"><div class="logo">bill's <span>time</span></div><div class="tag">fitness timer</div></header>
+    <nav class="mode-tabs" aria-label="Timer mode">
+      <button class="mode-tab active" data-mode="quick">Quick Timer</button>
+      <button class="mode-tab" data-mode="interval">Intervals</button>
+    </nav>
+
+    <section class="stage" aria-live="polite">
+      <div class="phase" id="phaseLabel">QUICK TIMER</div>
+      <div class="dial" id="dial"><div class="dial-inner"><div><div class="time" id="timerDisplay">0:40</div><div class="status" id="timerStatus">ready</div></div></div></div>
+      <div class="round-strip" id="roundStrip"><span class="line"></span><strong id="roundLabel">ROUND 1 OF 5</strong><span class="line"></span></div>
+    </section>
+
+    <section class="panel quick-panel" id="quickPanel">
+      <h2 class="panel-title">Quick Select</h2>
+      <div class="preset-grid">
+        <button class="steel-btn" data-seconds="30">30 sec</button><button class="steel-btn" data-seconds="35">35 sec</button><button class="steel-btn selected" data-seconds="40">40 sec</button>
+        <button class="steel-btn" data-seconds="45">45 sec</button><button class="steel-btn" data-seconds="60">1:00</button><button class="steel-btn" data-seconds="90">1:30</button>
       </div>
-      <div class="header-line">
-        <div class="header-line-left"></div>
-        <div class="header-line-right"></div>
+      <div class="adjust-row"><button class="steel-btn" id="minusBtn">−5</button><button class="steel-btn" id="restartBtn">Restart Time</button><button class="steel-btn" id="plusBtn">+5</button></div>
+      <div class="custom-row"><input class="custom-input" id="customInput" type="number" inputmode="numeric" min="1" max="3600" placeholder="Custom seconds"><button class="steel-btn" id="customSetBtn">Set</button></div>
+    </section>
+
+    <section class="panel interval-panel" id="intervalPanel">
+      <h2 class="panel-title">Interval Setup</h2>
+      <div class="settings-grid">
+        <div class="setting"><label>Work</label><div class="stepper"><button data-step="work" data-delta="-5">−</button><output id="workValue">40</output><button data-step="work" data-delta="5">+</button></div></div>
+        <div class="setting"><label>Rest</label><div class="stepper"><button data-step="rest" data-delta="-5">−</button><output id="restValue">20</output><button data-step="rest" data-delta="5">+</button></div></div>
+        <div class="setting"><label>Rounds</label><div class="stepper"><button data-step="rounds" data-delta="-1">−</button><output id="roundsValue">5</output><button data-step="rounds" data-delta="1">+</button></div></div>
       </div>
+    </section>
+
+    <div class="main-controls">
+      <button class="main-btn" id="resetBtn">Reset</button><button class="main-btn primary" id="startBtn">Start</button><button class="main-btn" id="skipBtn">Skip</button>
     </div>
-    
-    <div class="timer-display">
-      <div class="timer-time" id="timerDisplay">0:00</div>
-      <div class="timer-status" id="timerStatus">ready</div>
-    </div>
+    <div class="options"><label class="toggle"><input id="soundToggle" type="checkbox" checked> Sound</label><label class="toggle"><input id="voiceToggle" type="checkbox"> Voice cues</label></div>
+  </main>
 
-    <div class="controls">
-      <button class="preset-btn" data-seconds="30">30 sec</button>
-      <button class="preset-btn" data-seconds="35">35 sec</button>
-      <button class="preset-btn" data-seconds="40">40 sec</button>
-      <button class="preset-btn" data-seconds="45">45 sec</button>
-      <button class="preset-btn" data-seconds="60">1:00</button>
-      <button class="plus-btn" id="plusBtn">+5</button>
-    </div>
+<script>
+(() => {
+  const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  const app=$('#app'), display=$('#timerDisplay'), status=$('#timerStatus'), phaseLabel=$('#phaseLabel'), dial=$('#dial');
+  const startBtn=$('#startBtn'), resetBtn=$('#resetBtn'), skipBtn=$('#skipBtn'), roundStrip=$('#roundStrip'), roundLabel=$('#roundLabel');
+  const quickPanel=$('#quickPanel'), intervalPanel=$('#intervalPanel');
+  const values={work:40,rest:20,rounds:5};
+  let mode='quick', selectedSeconds=40, remainingMs=40000, durationMs=40000, targetTime=0, ticker=null;
+  let state='ready', phase='work', currentRound=1, audioCtx=null, wakeLock=null, lastShown=null;
 
-    <div class="action-controls">
-      <button class="control-btn" id="startBtn">Start</button>
-      <button class="control-btn" id="resetBtn">Reset</button>
-    </div>
+  const format = ms => { const s=Math.max(0,Math.ceil(ms/1000)); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; };
+  function unlockAudio(){ try { audioCtx ||= new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); } catch(e){} }
+  function tone(freq=700,duration=.12,volume=.18,delay=0){ if(!$('#soundToggle').checked||!audioCtx)return; const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime+delay; o.connect(g);g.connect(audioCtx.destination);o.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(volume,t);g.gain.exponentialRampToValueAtTime(.001,t+duration);o.start(t);o.stop(t+duration); }
+  function speak(text){ if($('#voiceToggle').checked&&'speechSynthesis'in window){ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text);u.rate=1.05;u.volume=.9;speechSynthesis.speak(u); } }
+  async function requestWake(){ try { if('wakeLock'in navigator) wakeLock=await navigator.wakeLock.request('screen'); }catch(e){} }
+  function releaseWake(){ try{wakeLock?.release();}catch(e){} wakeLock=null; }
 
-    <div class="custom-section">
-      <input type="number" class="custom-input" id="customInput" placeholder="custom sec" min="1" max="3600">
-      <button class="custom-set-btn" id="customSetBtn">Set</button>
-    </div>
-  </div>
+  function setVisualClass(){ app.classList.toggle('warning',state==='running'&&remainingMs<=10000);app.classList.toggle('resting',mode==='interval'&&phase==='rest'&&state!=='finished');app.classList.toggle('finished',state==='finished'); }
+  function render(){
+    display.textContent=format(remainingMs);
+    const pct=durationMs?Math.max(0,Math.min(1,1-remainingMs/durationMs)):0;
+    document.documentElement.style.setProperty('--progress',`${pct*360}deg`);
+    status.textContent=state==='running'?'running':state==='paused'?'paused':state==='finished'?'complete':'ready';
+    phaseLabel.textContent=mode==='quick'?'QUICK TIMER':state==='finished'?'WORKOUT COMPLETE':phase.toUpperCase();
+    roundLabel.textContent=`ROUND ${currentRound} OF ${values.rounds}`;
+    startBtn.textContent=state==='running'?'Pause':state==='paused'?'Resume':state==='finished'?'Again':'Start';
+    skipBtn.disabled=mode==='quick'||state==='ready'||state==='finished';
+    setVisualClass();
+  }
+  function setQuick(seconds){ stopTicker(); selectedSeconds=Math.max(5,Math.min(3600,seconds));remainingMs=durationMs=selectedSeconds*1000;state='ready'; $$('.preset-grid .steel-btn').forEach(b=>b.classList.toggle('selected',+b.dataset.seconds===selectedSeconds));render(); }
+  function setPhase(next, announce=true){ phase=next; durationMs=remainingMs=(phase==='work'?values.work:values.rest)*1000; lastShown=null; if(announce){ tone(phase==='work'?880:520,.18,.2);speak(phase==='work'?`Work. Round ${currentRound}`:'Rest'); } render(); }
+  function tick(){ remainingMs=Math.max(0,targetTime-Date.now()); const shown=Math.ceil(remainingMs/1000); if(shown!==lastShown){ lastShown=shown; if(shown>0&&shown<=3) tone(560+shown*80,.09,.13); } render(); if(remainingMs<=0) completePhase(); }
+  function startTicker(){ clearInterval(ticker);targetTime=Date.now()+remainingMs;ticker=setInterval(tick,100);tick();requestWake(); }
+  function stopTicker(){ clearInterval(ticker);ticker=null;releaseWake(); }
+  function start(){ unlockAudio();app.classList.remove('finished'); if(state==='finished'){ reset(); } if(remainingMs<=0) reset();state='running';startTicker();render(); }
+  function pause(){ remainingMs=Math.max(0,targetTime-Date.now());stopTicker();state='paused';render(); }
+  function completePhase(){ stopTicker(); if(mode==='quick'){ finish();return; } if(phase==='work'&&values.rest>0){ setPhase('rest');state='running';startTicker();return; } if(phase==='rest'||values.rest===0){ if(currentRound<values.rounds){currentRound++;setPhase('work');state='running';startTicker();}else finish(); } }
+  function finish(){ remainingMs=0;state='finished';tone(880,.25,.24,0);tone(1100,.25,.22,.24);tone(1320,.45,.22,.48);speak('Workout complete');if(navigator.vibrate)navigator.vibrate([150,80,150,80,300]);render();setTimeout(()=>app.classList.remove('finished'),3000); }
+  function reset(){ stopTicker();state='ready';currentRound=1;phase='work'; if(mode==='quick'){remainingMs=durationMs=selectedSeconds*1000;}else{remainingMs=durationMs=values.work*1000;} lastShown=null;render(); }
+  function skip(){ if(mode==='interval'&&state!=='ready'&&state!=='finished'){remainingMs=0;completePhase();} }
 
-  <script>
-    let totalSeconds = 0;
-    let remainingSeconds = 0;
-    let timerInterval = null;
-    let isRunning = false;
-
-    const timerDisplay = document.getElementById('timerDisplay');
-    const timerStatus = document.getElementById('timerStatus');
-    const startBtn = document.getElementById('startBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const plusBtn = document.getElementById('plusBtn');
-    const customInput = document.getElementById('customInput');
-    const customSetBtn = document.getElementById('customSetBtn');
-    const presetBtns = document.querySelectorAll('.preset-btn');
-
-    function formatTime(seconds) {
-      const mins = Math.floor(seconds / 60);
-      const secs = seconds % 60;
-      return `${mins}:${secs.toString().padStart(2, '0')}`;
-    }
-
-    function updateDisplay() {
-      timerDisplay.textContent = formatTime(remainingSeconds);
-      timerStatus.textContent = isRunning ? 'running' : 'ready';
-    }
-
-    function setTime(seconds) {
-      if (!isRunning) {
-        totalSeconds = seconds;
-        remainingSeconds = seconds;
-        updateDisplay();
-      }
-    }
-
-    function addTime(seconds) {
-      totalSeconds += seconds;
-      remainingSeconds += seconds;
-      updateDisplay();
-    }
-
-    function startTimer() {
-      if (remainingSeconds === 0) return;
-      if (isRunning) return;
-
-      isRunning = true;
-      startBtn.textContent = 'Pause';
-      presetBtns.forEach(btn => btn.disabled = true);
-      plusBtn.disabled = true;
-      updateDisplay();
-
-      timerInterval = setInterval(() => {
-        remainingSeconds--;
-        updateDisplay();
-
-        if (remainingSeconds <= 0) {
-          finishTimer();
-        }
-      }, 1000);
-    }
-
-    function pauseTimer() {
-      isRunning = false;
-      clearInterval(timerInterval);
-      startBtn.textContent = 'Start';
-      presetBtns.forEach(btn => btn.disabled = false);
-      if (remainingSeconds > 0) plusBtn.disabled = false;
-      updateDisplay();
-    }
-
-    function finishTimer() {
-      clearInterval(timerInterval);
-      isRunning = false;
-      remainingSeconds = 0;
-      startBtn.textContent = 'Start';
-      presetBtns.forEach(btn => btn.disabled = false);
-      plusBtn.disabled = false;
-      updateDisplay();
-
-      if (navigator.vibrate) {
-        navigator.vibrate([100, 50, 100, 50, 200]);
-      }
-
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      oscillator.frequency.value = 800;
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.6);
-
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.6);
-    }
-
-    function resetTimer() {
-      clearInterval(timerInterval);
-      isRunning = false;
-      totalSeconds = 0;
-      remainingSeconds = 0;
-      startBtn.textContent = 'Start';
-      presetBtns.forEach(btn => btn.disabled = false);
-      plusBtn.disabled = false;
-      updateDisplay();
-    }
-
-    startBtn.addEventListener('click', () => {
-      if (isRunning) {
-        pauseTimer();
-      } else {
-        startTimer();
-      }
-    });
-
-    resetBtn.addEventListener('click', resetTimer);
-
-    plusBtn.addEventListener('click', () => {
-      if (remainingSeconds > 0 || totalSeconds > 0) {
-        addTime(5);
-      }
-    });
-
-    presetBtns.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        setTime(parseInt(e.target.dataset.seconds));
-      });
-    });
-
-    customSetBtn.addEventListener('click', () => {
-      const value = parseInt(customInput.value);
-      if (value > 0 && value <= 3600) {
-        setTime(value);
-        customInput.value = '';
-      }
-    });
-
-    customInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        const value = parseInt(customInput.value);
-        if (value > 0 && value <= 3600) {
-          setTime(value);
-          customInput.value = '';
-        }
-      }
-    });
-
-    updateDisplay();
-  </script>
+  startBtn.onclick=()=>state==='running'?pause():start(); resetBtn.onclick=reset; skipBtn.onclick=skip;
+  $$('.mode-tab').forEach(b=>b.onclick=()=>{ mode=b.dataset.mode; $$('.mode-tab').forEach(x=>x.classList.toggle('active',x===b));quickPanel.style.display=mode==='quick'?'block':'none';intervalPanel.classList.toggle('show',mode==='interval');roundStrip.classList.toggle('show',mode==='interval');reset(); });
+  $$('.preset-grid .steel-btn').forEach(b=>b.onclick=()=>setQuick(+b.dataset.seconds));
+  $('#plusBtn').onclick=()=>{selectedSeconds=Math.min(3600,Math.ceil(remainingMs/1000)+5);remainingMs+=5000;durationMs=Math.max(durationMs,remainingMs);render();};
+  $('#minusBtn').onclick=()=>{remainingMs=Math.max(5000,remainingMs-5000);selectedSeconds=Math.ceil(remainingMs/1000);durationMs=Math.max(remainingMs,selectedSeconds*1000);render();};
+  $('#restartBtn').onclick=()=>setQuick(selectedSeconds);
+  function customSet(){const n=+$('#customInput').value;if(n>=1&&n<=3600){setQuick(n);$('#customInput').value='';}}
+  $('#customSetBtn').onclick=customSet;$('#customInput').addEventListener('keydown',e=>{if(e.key==='Enter')customSet();});
+  $$('[data-step]').forEach(b=>b.onclick=()=>{const k=b.dataset.step,d=+b.dataset.delta;values[k]=Math.max(k==='rounds'?1:k==='rest'?0:5,Math.min(k==='rounds'?50:3600,values[k]+d));$(`#${k}Value`).textContent=values[k];if(state==='ready')reset();});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&state==='running'){tick();requestWake();}});
+  render();
+})();
+</script>
 </body>
 </html>
