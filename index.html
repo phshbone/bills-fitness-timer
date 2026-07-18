@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0f0f0f">
+  <title>Fitness Timer</title>
+  <style>
+    @font-face {
+      font-family: 'Bauhaus';
+      src: url('data:font/ttf;base64,AAEAAAAOAIAAAwBgT1MvMlKxOsQAAHE8AAAATmNtYXA1V/6IAABNHAAABYBjdnQgwEZrUgAAAOwAAAAQZnBnbbEzAoMAAAD8AAAASGdseWYTZv+nAAABRAAATVZoZWFkYeFC2AAAUpwAAAA2aGhlYQZUA1AAAFLUAAAAJGhtdHgEGww+AABS+AAABkBrZXJuQ9TyiwAAWTgAAAYSbG9jYQBeJoYAAF9MAAAGQG1heHAEOQHnAABljAAAACBuYW1lHXOEugAAZawAAAJ2cG9zdFkFpjUAAGgkAAAJE3ByZXC4Af+FAABxOAAAAAQBsQJ4A+jzHgAAt7y6q74AsAAsIC+wAiUzirgQAGOwAiNwsAJFILAEJbAEJUlhZLBAUFiwAyUjOhshWSGwASNCIFgXPBshWbABQxAgWBc8GyFZLbABLMAtAAIAHv/yAJYCeAAPABQAMRgBsACwAEEEAEAACQADAAArMRgAuAARsAE/QAISAb') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+      color: #e8e8e8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(255,255,255,.03) 8px, rgba(255,255,255,.03) 9px),
+        repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(255,255,255,.03) 8px, rgba(255,255,255,.03) 9px),
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.2) 2px, rgba(0,0,0,.2) 4px),
+        repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,.2) 2px, rgba(0,0,0,.2) 4px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header {
+      font-family: 'Bauhaus', sans-serif;
+      font-size: 32px;
+      font-weight: normal;
+      text-align: center;
+      margin-bottom: 28px;
+      letter-spacing: 2px;
+      position: relative;
+    }
+
+    .header-text {
+      display: inline-block;
+    }
+
+    .header-bills {
+      color: #6B8E5F;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4), 
+                   4px 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .header-time {
+      color: #e8e8e8;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4), 
+                   4px 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .header-line {
+      display: flex;
+      width: 180px;
+      margin: 8px auto 0;
+      height: 3px;
+      gap: 0;
+    }
+
+    .header-line-left {
+      flex: 1;
+      background: #e8e8e8;
+    }
+
+    .header-line-right {
+      flex: 1;
+      background: #6B8E5F;
+    }
+
+    .timer-display {
+      background: linear-gradient(145deg, #1a1a1a 0%, #0f0f0f 100%);
+      border: 1px solid rgba(128, 128, 128, 0.3);
+      border-radius: 20px;
+      padding: 40px 24px;
+      margin-bottom: 32px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.5), 0 8px 32px rgba(0,0,0,0.7);
+      text-align: center;
+      position: relative;
+    }
+
+    .timer-display::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: 
+        linear-gradient(135deg, rgba(200,200,200,0.05) 0%, transparent 50%),
+        linear-gradient(315deg, rgba(100,100,100,0.05) 0%, transparent 50%);
+      border-radius: 20px;
+      pointer-events: none;
+    }
+
+    .timer-time {
+      font-size: 80px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      font-variant-numeric: tabular-nums;
+      color: #e8e8e8;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .timer-status {
+      font-size: 14px;
+      color: #888;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .preset-btn {
+      background: linear-gradient(145deg, #2a2a2a 0%, #1f1f1f 100%);
+      border: 1px solid rgba(128, 128, 128, 0.4);
+      border-radius: 12px;
+      padding: 14px 12px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #d8d8d8;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .preset-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+      pointer-events: none;
+    }
+
+    .preset-btn:active {
+      background: linear-gradient(145deg, #3a3a3a 0%, #2f2f2f 100%);
+      transform: scale(0.98);
+    }
+
+    .preset-btn:hover {
+      border-color: rgba(180, 180, 180, 0.6);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .action-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .plus-btn, .control-btn {
+      background: linear-gradient(145deg, #2a2a2a 0%, #1f1f1f 100%);
+      border: 1px solid rgba(128, 128, 128, 0.4);
+      border-radius: 12px;
+      padding: 16px 12px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #b0b0b0;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .plus-btn::before, .control-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+      pointer-events: none;
+    }
+
+    .plus-btn:active, .control-btn:active {
+      background: linear-gradient(145deg, #3a3a3a 0%, #2f2f2f 100%);
+      transform: scale(0.98);
+    }
+
+    .plus-btn:hover, .control-btn:hover {
+      border-color: rgba(180, 180, 180, 0.6);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .plus-btn:disabled, .control-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .custom-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(128, 128, 128, 0.2);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .custom-input {
+      flex: 1;
+      background: linear-gradient(145deg, #2a2a2a 0%, #1f1f1f 100%);
+      border: 1px solid rgba(128, 128, 128, 0.4);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #d8d8d8;
+      transition: all 0.15s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    .custom-input::placeholder {
+      color: #666;
+    }
+
+    .custom-input:focus {
+      outline: none;
+      border-color: rgba(180, 180, 180, 0.6);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .custom-set-btn {
+      background: linear-gradient(145deg, #2a2a2a 0%, #1f1f1f 100%);
+      border: 1px solid rgba(128, 128, 128, 0.4);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #b0b0b0;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      position: relative;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .custom-set-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+      pointer-events: none;
+    }
+
+    .custom-set-btn:active {
+      background: linear-gradient(145deg, #3a3a3a 0%, #2f2f2f 100%);
+      transform: scale(0.98);
+    }
+
+    .custom-set-btn:hover {
+      border-color: rgba(180, 180, 180, 0.6);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .preset-btn, .plus-btn, .control-btn, .custom-input, .custom-set-btn {
+        transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-text">
+        <span class="header-bills">bill's</span> <span class="header-time">time</span>
+      </div>
+      <div class="header-line">
+        <div class="header-line-left"></div>
+        <div class="header-line-right"></div>
+      </div>
+    </div>
+    
+    <div class="timer-display">
+      <div class="timer-time" id="timerDisplay">0:00</div>
+      <div class="timer-status" id="timerStatus">ready</div>
+    </div>
+
+    <div class="controls">
+      <button class="preset-btn" data-seconds="30">30 sec</button>
+      <button class="preset-btn" data-seconds="35">35 sec</button>
+      <button class="preset-btn" data-seconds="40">40 sec</button>
+      <button class="preset-btn" data-seconds="45">45 sec</button>
+      <button class="preset-btn" data-seconds="60">1:00</button>
+      <button class="plus-btn" id="plusBtn">+5</button>
+    </div>
+
+    <div class="action-controls">
+      <button class="control-btn" id="startBtn">Start</button>
+      <button class="control-btn" id="resetBtn">Reset</button>
+    </div>
+
+    <div class="custom-section">
+      <input type="number" class="custom-input" id="customInput" placeholder="custom sec" min="1" max="3600">
+      <button class="custom-set-btn" id="customSetBtn">Set</button>
+    </div>
+  </div>
+
+  <script>
+    let totalSeconds = 0;
+    let remainingSeconds = 0;
+    let timerInterval = null;
+    let isRunning = false;
+
+    const timerDisplay = document.getElementById('timerDisplay');
+    const timerStatus = document.getElementById('timerStatus');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const plusBtn = document.getElementById('plusBtn');
+    const customInput = document.getElementById('customInput');
+    const customSetBtn = document.getElementById('customSetBtn');
+    const presetBtns = document.querySelectorAll('.preset-btn');
+
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function updateDisplay() {
+      timerDisplay.textContent = formatTime(remainingSeconds);
+      timerStatus.textContent = isRunning ? 'running' : 'ready';
+    }
+
+    function setTime(seconds) {
+      if (!isRunning) {
+        totalSeconds = seconds;
+        remainingSeconds = seconds;
+        updateDisplay();
+      }
+    }
+
+    function addTime(seconds) {
+      totalSeconds += seconds;
+      remainingSeconds += seconds;
+      updateDisplay();
+    }
+
+    function startTimer() {
+      if (remainingSeconds === 0) return;
+      if (isRunning) return;
+
+      isRunning = true;
+      startBtn.textContent = 'Pause';
+      presetBtns.forEach(btn => btn.disabled = true);
+      plusBtn.disabled = true;
+      updateDisplay();
+
+      timerInterval = setInterval(() => {
+        remainingSeconds--;
+        updateDisplay();
+
+        if (remainingSeconds <= 0) {
+          finishTimer();
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      isRunning = false;
+      clearInterval(timerInterval);
+      startBtn.textContent = 'Start';
+      presetBtns.forEach(btn => btn.disabled = false);
+      if (remainingSeconds > 0) plusBtn.disabled = false;
+      updateDisplay();
+    }
+
+    function finishTimer() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      remainingSeconds = 0;
+      startBtn.textContent = 'Start';
+      presetBtns.forEach(btn => btn.disabled = false);
+      plusBtn.disabled = false;
+      updateDisplay();
+
+      if (navigator.vibrate) {
+        navigator.vibrate([100, 50, 100, 50, 200]);
+      }
+
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.value = 800;
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.6);
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.6);
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      totalSeconds = 0;
+      remainingSeconds = 0;
+      startBtn.textContent = 'Start';
+      presetBtns.forEach(btn => btn.disabled = false);
+      plusBtn.disabled = false;
+      updateDisplay();
+    }
+
+    startBtn.addEventListener('click', () => {
+      if (isRunning) {
+        pauseTimer();
+      } else {
+        startTimer();
+      }
+    });
+
+    resetBtn.addEventListener('click', resetTimer);
+
+    plusBtn.addEventListener('click', () => {
+      if (remainingSeconds > 0 || totalSeconds > 0) {
+        addTime(5);
+      }
+    });
+
+    presetBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        setTime(parseInt(e.target.dataset.seconds));
+      });
+    });
+
+    customSetBtn.addEventListener('click', () => {
+      const value = parseInt(customInput.value);
+      if (value > 0 && value <= 3600) {
+        setTime(value);
+        customInput.value = '';
+      }
+    });
+
+    customInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const value = parseInt(customInput.value);
+        if (value > 0 && value <= 3600) {
+          setTime(value);
+          customInput.value = '';
+        }
+      }
+    });
+
+    updateDisplay();
+  </script>
+</body>
+</html>
