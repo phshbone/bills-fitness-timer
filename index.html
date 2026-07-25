@@ -96,6 +96,19 @@
     .theme-label { font-weight:800; letter-spacing:.5px; }
     .theme-select { min-width:170px; min-height:40px; border:1px solid #4b5661; border-radius:999px; padding:0 16px; color:#eef3f6; background:linear-gradient(180deg,#303843,#252a31); box-shadow:inset 0 1px rgba(255,255,255,.12),inset 0 -3px 7px rgba(0,0,0,.18),0 3px 7px rgba(0,0,0,.28); }
     .theme-select:focus { outline:none; border-color:var(--accent-light); box-shadow:0 0 0 1px rgba(199,206,211,.22), 0 0 0 4px rgba(var(--accent-rgb),.16), inset 0 1px rgba(255,255,255,.12), inset 0 -3px 7px rgba(0,0,0,.18), 0 3px 7px rgba(0,0,0,.28); }
+    .theme-blackout .mode-tab.active,
+    .theme-blackout .steel-btn.selected,
+    .theme-blackout .main-btn.primary {
+      color:#e7ecef;
+      border-color:#aeb6bd;
+      background:linear-gradient(180deg,#161a1e,#050607);
+      box-shadow:0 0 0 1px rgba(226,230,233,.24),0 0 14px rgba(226,230,233,.10),inset 0 1px rgba(255,255,255,.12),0 3px 8px rgba(0,0,0,.55);
+    }
+    .theme-blackout .dial {
+      background:conic-gradient(#c8cfd4 var(--progress),#161a1e 0);
+      box-shadow:0 0 0 2px rgba(226,230,233,.28),0 5px 0 rgba(20,23,26,.9),0 0 22px rgba(226,230,233,.10),inset 0 0 18px #000;
+    }
+    .theme-blackout .logo { color:#c8cfd4; }
     .finished .stage { animation:finishFlash .7s ease-in-out 4; }
     .warning { --accent:var(--amber); }
     .resting { --accent:var(--rest); }
@@ -176,7 +189,7 @@
       <button class="main-btn" id="resetBtn">Reset</button><button class="main-btn primary" id="startBtn">Start</button><button class="main-btn" id="skipBtn">Skip</button>
     </div>
     <div class="options"><label class="toggle"><input id="soundToggle" type="checkbox" checked> Sound</label><label class="toggle"><input id="voiceToggle" type="checkbox"> Voice cues</label></div>
-    <div class="theme-bar"><span class="theme-label">Theme</span><select id="themeSelect" class="theme-select" aria-label="Choose app theme"><option value="green">Dusty Green</option><option value="blue">Dusty Blue</option><option value="pink">Dusty Pink</option><option value="red">Dusty Red</option><option value="silver">Silver Slate</option></select></div>
+    <div class="theme-bar"><span class="theme-label">Theme</span><select id="themeSelect" class="theme-select" aria-label="Choose app theme"><option value="green">Dusty Green</option><option value="blue">Dusty Blue</option><option value="pink">Dusty Pink</option><option value="red">Dusty Red</option><option value="silver">Silver Slate</option><option value="blackout">Blackout + Silver</option><option value="classicBlue">Classic Blue</option><option value="classicRed">Classic Red</option><option value="classicPink">Classic Pink</option><option value="purple">Royal Purple</option></select></div>
   </main>
 
 <script>
@@ -192,7 +205,12 @@
     blue:{accent:'#7f97ad',light:'#b5c3d0',dark:'#657d92',rgb:'127,151,173',themeColor:'#10151b'},
     pink:{accent:'#b0899f',light:'#d4bdca',dark:'#946f84',rgb:'176,137,159',themeColor:'#171217'},
     red:{accent:'#a56f72',light:'#c7a0a2',dark:'#88585c',rgb:'165,111,114',themeColor:'#171112'},
-    silver:{accent:'#9baab5',light:'#d1d8de',dark:'#7c8c96',rgb:'155,170,181',themeColor:'#11151a'}
+    silver:{accent:'#9baab5',light:'#d1d8de',dark:'#7c8c96',rgb:'155,170,181',themeColor:'#11151a'},
+    blackout:{accent:'#aeb6bd',light:'#e2e6e9',dark:'#24292e',rgb:'174,182,189',themeColor:'#050607'},
+    classicBlue:{accent:'#3478d4',light:'#76aef2',dark:'#1f55a0',rgb:'52,120,212',themeColor:'#0b1422'},
+    classicRed:{accent:'#c54347',light:'#ed7b7f',dark:'#8e252a',rgb:'197,67,71',themeColor:'#1c0b0c'},
+    classicPink:{accent:'#d75d9a',light:'#f195bf',dark:'#9e346b',rgb:'215,93,154',themeColor:'#1b0d15'},
+    purple:{accent:'#7f58c7',light:'#ad8bea',dark:'#563592',rgb:'127,88,199',themeColor:'#120d1c'}
   };
   let mode='quick', selectedSeconds=45, remainingMs=45000, durationMs=45000, targetTime=0, ticker=null;
   let state='ready', phase='work', currentRound=1, audioCtx=null, masterGain=null, compressor=null, wakeLock=null, lastShown=null, leadInEnabled=true, leadRemainingMs=0;
@@ -239,6 +257,7 @@
     root.style.setProperty('--accent-dark',theme.dark);
     root.style.setProperty('--accent-rgb',theme.rgb);
     themeColorMeta?.setAttribute('content', theme.themeColor);
+    document.body.classList.toggle('theme-blackout', name==='blackout');
     if(themeSelect) themeSelect.value=name;
     try{ localStorage.setItem('billsTimerTheme',name); }catch(e){}
   }
