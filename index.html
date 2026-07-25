@@ -372,8 +372,8 @@
     ticker=setInterval(tick,100);tick();requestWake();
   }
   function stopTicker(){ clearInterval(ticker);ticker=null;releaseWake(); }
-  async function start(){
-    await primeAudio();app.classList.remove('finished');
+  function start(){
+    void primeAudio();app.classList.remove('finished');
     if(state==='finished') reset();
     if(remainingMs<=0) reset();
     const freshStart=state==='ready';
@@ -391,7 +391,7 @@
   function reset(){ stopTicker();state='ready';currentRound=1;phase='work'; if(mode==='quick'){remainingMs=durationMs=selectedSeconds*1000;}else{remainingMs=durationMs=values.work*1000;} leadRemainingMs=0;lastShown=null;render(); }
   function skip(){ if(mode==='interval'&&state!=='ready'&&state!=='finished'){remainingMs=0;completePhase();} }
 
-  startBtn.onclick=async()=>{await primeAudio();state==='lead-in'?cancelLead():state==='running'?pause():start();}; resetBtn.onclick=reset; skipBtn.onclick=async()=>{await primeAudio();skip();};
+  startBtn.onclick=()=>{void primeAudio();state==='lead-in'?cancelLead():state==='running'?pause():start();}; resetBtn.onclick=reset; skipBtn.onclick=()=>{void primeAudio();skip();};
   $$('.mode-tab').forEach(b=>b.onclick=()=>{ mode=b.dataset.mode; $$('.mode-tab').forEach(x=>x.classList.toggle('active',x===b));quickPanel.style.display=mode==='quick'?'block':'none';intervalPanel.classList.toggle('show',mode==='interval');roundStrip.classList.toggle('show',mode==='interval');reset(); });
   $$('.preset-grid .steel-btn').forEach(b=>b.onclick=()=>setQuick(+b.dataset.seconds));
   $('#plusBtn').onclick=()=>{selectedSeconds=Math.min(3600,Math.ceil(remainingMs/1000)+5);remainingMs+=5000;durationMs=Math.max(durationMs,remainingMs);render();};
@@ -403,7 +403,7 @@
   $$('[data-step]').forEach(b=>b.onclick=()=>{const k=b.dataset.step,d=+b.dataset.delta;values[k]=Math.max(k==='rounds'?1:k==='rest'?0:5,Math.min(k==='rounds'?50:3600,values[k]+d));$(`#${k}Value`).textContent=values[k];if(state==='ready')reset();});
   themeSelect?.addEventListener('change',e=>applyTheme(e.target.value));
   document.addEventListener('visibilitychange',async()=>{if(document.visibilityState==='visible'){await unlockAudio();if(state==='running'){tick();requestWake();}}});
-  $('#soundToggle').addEventListener('change',async e=>{if(e.target.checked)await primeAudio();});
+  $('#soundToggle').addEventListener('change',e=>{if(e.target.checked)void primeAudio();});
   try{applyTheme(localStorage.getItem('billsTimerTheme')||'dustyGreen');}catch(e){applyTheme('dustyGreen');}
   render();
 })();
