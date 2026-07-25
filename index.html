@@ -59,6 +59,9 @@
       background:conic-gradient(var(--accent) var(--progress),#303842 0); box-shadow:0 0 0 2px rgba(199,206,211,.24),0 5px 0 rgba(70,78,74,.78),0 0 20px rgba(199,206,211,.10),inset 0 0 18px #000; transition:background .18s linear; }
     .dial-inner { width:100%; height:100%; border-radius:50%; display:grid; place-items:center; position:relative;
       background:radial-gradient(circle at 50% 35%,#242b33,#0b0e12 72%); border:2px solid #0a0c0f; box-shadow:inset 0 0 42px #000,0 0 0 2px #515b66; }
+    .dial-inner::after { content:""; position:absolute; inset:0; border-radius:50%; pointer-events:none; opacity:0; background:radial-gradient(circle,rgba(var(--theme-accent-rgb),.42) 0%,rgba(var(--theme-accent-rgb),.18) 46%,transparent 74%); box-shadow:inset 0 0 42px rgba(var(--theme-accent-rgb),.48),0 0 26px rgba(var(--theme-accent-rgb),.24); }
+    .dial-inner.countdown-flash::after { animation:countdownPulse .42s ease-out; }
+    .finished .dial-inner::after { opacity:1; background:radial-gradient(circle,rgba(210,82,88,.48) 0%,rgba(168,95,98,.20) 48%,transparent 76%); box-shadow:inset 0 0 46px rgba(210,82,88,.52),0 0 30px rgba(168,95,98,.30); animation:finishInnerPulse .7s ease-in-out 4; }
     .time { font-family:Bauhaus,"Arial Black",sans-serif; font-variant-numeric:tabular-nums; font-size:clamp(64px,19vw,104px); letter-spacing:-4px; line-height:.9; color:#f3f5f3; text-shadow:0 5px 18px #000,2px 2px 0 rgba(70,80,73,.95),-1px -1px 0 rgba(199,206,211,.32),0 0 13px rgba(199,206,211,.10); }
     .status { margin-top:8px; color:var(--muted); font-size:12px; letter-spacing:2px; text-transform:uppercase; text-align:center; }
     .round-strip { display:none; position:relative; z-index:2; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px; margin-top:6px; color:#bdc6ce; font-size:13px; }
@@ -114,6 +117,8 @@
     .warning { --accent:var(--amber); }
     .resting { --accent:var(--rest); }
     .finished { --accent:var(--red); }
+    @keyframes countdownPulse { 0% { opacity:0; transform:scale(.96); } 18% { opacity:1; transform:scale(1); } 100% { opacity:0; transform:scale(1.025); } }
+    @keyframes finishInnerPulse { 0%,100% { opacity:.28; } 50% { opacity:1; } }
     @keyframes finishFlash { 50% { filter:brightness(1.28); box-shadow:0 0 0 2px rgba(199,206,211,.18),0 0 38px rgba(168,95,98,.28); } }
     /* Compact phone layout: keeps the entire quick timer visible without crowding it. */
     @media (max-width:430px) and (max-height:950px) {
@@ -195,7 +200,7 @@
 <script>
 (() => {
   const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-  const app=$('#app'), display=$('#timerDisplay'), status=$('#timerStatus'), phaseLabel=$('#phaseLabel'), dial=$('#dial');
+  const app=$('#app'), display=$('#timerDisplay'), status=$('#timerStatus'), phaseLabel=$('#phaseLabel'), dial=$('#dial'), dialInner=$('.dial-inner');
   const startBtn=$('#startBtn'), resetBtn=$('#resetBtn'), skipBtn=$('#skipBtn'), roundStrip=$('#roundStrip'), roundLabel=$('#roundLabel');
   const quickPanel=$('#quickPanel'), intervalPanel=$('#intervalPanel'), themeSelect=$('#themeSelect');
   const themeColorMeta=document.querySelector('meta[name="theme-color"]');
@@ -222,38 +227,68 @@
   let state='ready', phase='work', currentRound=1, audioCtx=null, masterGain=null, compressor=null, wakeLock=null, lastShown=null, leadInEnabled=true, leadRemainingMs=0;
 
   const format = ms => { const s=Math.max(0,Math.ceil(ms/1000)); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; };
-  function unlockAudio(){
+  function buildAudioGraph(){
+    compressor=audioCtx.createDynamicsCompressor();
+    compressor.threshold.value=-22; compressor.knee.value=16; compressor.ratio.value=8; compressor.attack.value=.002; compressor.release.value=.22;
+    masterGain=audioCtx.createGain(); masterGain.gain.value=1;
+    compressor.connect(masterGain); masterGain.connect(audioCtx.destination);
+  }
+  async function unlockAudio(forceRebuild=false){
+    if(!$('#soundToggle').checked) return false;
     try {
-      audioCtx ||= new (window.AudioContext||window.webkitAudioContext)();
-      if(!compressor){
-        compressor=audioCtx.createDynamicsCompressor();
-        compressor.threshold.value=-22; compressor.knee.value=16; compressor.ratio.value=8; compressor.attack.value=.002; compressor.release.value=.22;
-        masterGain=audioCtx.createGain(); masterGain.gain.value=1;
-        compressor.connect(masterGain); masterGain.connect(audioCtx.destination);
+      const AudioCtor=window.AudioContext||window.webkitAudioContext;
+      if(!AudioCtor) return false;
+      if(forceRebuild||!audioCtx||audioCtx.state==='closed'){
+        try{ if(audioCtx&&audioCtx.state!=='closed') await audioCtx.close(); }catch(e){}
+        audioCtx=new AudioCtor(); compressor=null; masterGain=null;
       }
-      if(audioCtx.state==='suspended') audioCtx.resume();
-    } catch(e){}
+      if(!compressor||!masterGain) buildAudioGraph();
+      if(audioCtx.state==='suspended'||audioCtx.state==='interrupted') await audioCtx.resume();
+      return audioCtx.state==='running';
+    } catch(e){
+      if(!forceRebuild){
+        audioCtx=null; compressor=null; masterGain=null;
+        return unlockAudio(true);
+      }
+      return false;
+    }
   }
-  function tone(freq=700,duration=.12,volume=.18,delay=0,type='sine'){
-    if(!$('#soundToggle').checked||!audioCtx||!compressor)return;
-    const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime+delay;
-    o.type=type;o.connect(g);g.connect(compressor);o.frequency.setValueAtTime(freq,t);
-    g.gain.setValueAtTime(Math.max(.001,volume),t);g.gain.exponentialRampToValueAtTime(.001,t+duration);
-    o.start(t);o.stop(t+duration+.02);
+  async function primeAudio(){
+    if(!await unlockAudio()) return;
+    try{
+      const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime;
+      o.connect(g);g.connect(compressor);g.gain.setValueAtTime(.0001,t);
+      o.start(t);o.stop(t+.015);
+    }catch(e){}
   }
-  function clack(delay=0){
-    if(!$('#soundToggle').checked||!audioCtx||!compressor)return;
-    const length=Math.max(1,Math.floor(audioCtx.sampleRate*.045));
-    const buffer=audioCtx.createBuffer(1,length,audioCtx.sampleRate);
-    const data=buffer.getChannelData(0);
-    for(let i=0;i<length;i++) data[i]=(Math.random()*2-1)*Math.pow(1-i/length,3);
-    const source=audioCtx.createBufferSource(), filter=audioCtx.createBiquadFilter(), gain=audioCtx.createGain();
-    const t=audioCtx.currentTime+delay;
-    source.buffer=buffer; filter.type='bandpass'; filter.frequency.setValueAtTime(1850,t); filter.Q.setValueAtTime(1.8,t);
-    source.connect(filter); filter.connect(gain); gain.connect(compressor);
-    gain.gain.setValueAtTime(.9,t); gain.gain.exponentialRampToValueAtTime(.001,t+.055);
-    source.start(t); source.stop(t+.06);
-    tone(420,.045,.22,delay,'square');
+  async function tone(freq=700,duration=.12,volume=.18,delay=0,type='sine'){
+    if(!$('#soundToggle').checked||!await unlockAudio())return;
+    try{
+      const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime+delay;
+      o.type=type;o.connect(g);g.connect(compressor);o.frequency.setValueAtTime(freq,t);
+      g.gain.setValueAtTime(Math.max(.001,volume),t);g.gain.exponentialRampToValueAtTime(.001,t+duration);
+      o.start(t);o.stop(t+duration+.02);
+    }catch(e){
+      await unlockAudio(true);
+    }
+  }
+  async function clack(delay=0){
+    if(!$('#soundToggle').checked||!await unlockAudio())return;
+    try{
+      const length=Math.max(1,Math.floor(audioCtx.sampleRate*.045));
+      const buffer=audioCtx.createBuffer(1,length,audioCtx.sampleRate);
+      const data=buffer.getChannelData(0);
+      for(let i=0;i<length;i++) data[i]=(Math.random()*2-1)*Math.pow(1-i/length,3);
+      const source=audioCtx.createBufferSource(), filter=audioCtx.createBiquadFilter(), gain=audioCtx.createGain();
+      const t=audioCtx.currentTime+delay;
+      source.buffer=buffer; filter.type='bandpass'; filter.frequency.setValueAtTime(1850,t); filter.Q.setValueAtTime(1.8,t);
+      source.connect(filter); filter.connect(gain); gain.connect(compressor);
+      gain.gain.setValueAtTime(.9,t); gain.gain.exponentialRampToValueAtTime(.001,t+.055);
+      source.start(t); source.stop(t+.06);
+      tone(420,.045,.22,delay,'square');
+    }catch(e){
+      await unlockAudio(true);
+    }
   }
   function startDing(){
     tone(1046,.34,.72,0,'sine'); tone(1568,.38,.48,0,'triangle'); tone(2093,.28,.28,.01,'sine');
@@ -277,6 +312,8 @@
     root.style.setProperty('--accent-light',theme.light);
     root.style.setProperty('--accent-dark',theme.dark);
     root.style.setProperty('--accent-rgb',theme.rgb);
+    root.style.setProperty('--theme-accent-rgb',theme.rgb);
+    root.style.setProperty('--theme-accent-light',theme.light);
     root.style.setProperty('--selected-text',theme.selected);
     themeColorMeta?.setAttribute('content',theme.themeColor);
     document.body.classList.toggle('theme-blackout-silver',name==='blackoutSilver');
@@ -302,6 +339,13 @@
   }
   function setQuick(seconds){ stopTicker(); selectedSeconds=Math.max(5,Math.min(3600,seconds));remainingMs=durationMs=selectedSeconds*1000;state='ready'; $$('.preset-grid .steel-btn').forEach(b=>b.classList.toggle('selected',+b.dataset.seconds===selectedSeconds));render(); }
   function setPhase(next, announce=true){ phase=next; durationMs=remainingMs=(phase==='work'?values.work:values.rest)*1000; lastShown=null; if(announce){ tone(phase==='work'?880:520,.18,.2);speak(phase==='work'?`Work. Round ${currentRound}`:'Rest'); } render(); }
+  function flashCountdown(){
+    if(!dialInner)return;
+    dialInner.classList.remove('countdown-flash');
+    void dialInner.offsetWidth;
+    dialInner.classList.add('countdown-flash');
+    setTimeout(()=>dialInner.classList.remove('countdown-flash'),460);
+  }
   function tick(){
     if(state==='lead-in'){
       leadRemainingMs=Math.max(0,targetTime-Date.now());
@@ -318,7 +362,7 @@
       return;
     }
     remainingMs=Math.max(0,targetTime-Date.now()); const shown=Math.ceil(remainingMs/1000);
-    if(shown!==lastShown){ lastShown=shown; if(shown>0&&shown<=5){ tone(610+shown*55,.16,.46); tone(915+shown*45,.12,.22,.015); } }
+    if(shown!==lastShown){ lastShown=shown; if(shown>0&&shown<=5){ flashCountdown(); tone(610+shown*55,.16,.46); tone(915+shown*45,.12,.22,.015); } }
     render(); if(remainingMs<=0) completePhase();
   }
   function startTicker(withLead=false){
@@ -328,8 +372,8 @@
     ticker=setInterval(tick,100);tick();requestWake();
   }
   function stopTicker(){ clearInterval(ticker);ticker=null;releaseWake(); }
-  function start(){
-    unlockAudio();app.classList.remove('finished');
+  async function start(){
+    await primeAudio();app.classList.remove('finished');
     if(state==='finished') reset();
     if(remainingMs<=0) reset();
     const freshStart=state==='ready';
@@ -347,7 +391,7 @@
   function reset(){ stopTicker();state='ready';currentRound=1;phase='work'; if(mode==='quick'){remainingMs=durationMs=selectedSeconds*1000;}else{remainingMs=durationMs=values.work*1000;} leadRemainingMs=0;lastShown=null;render(); }
   function skip(){ if(mode==='interval'&&state!=='ready'&&state!=='finished'){remainingMs=0;completePhase();} }
 
-  startBtn.onclick=()=>state==='lead-in'?cancelLead():state==='running'?pause():start(); resetBtn.onclick=reset; skipBtn.onclick=skip;
+  startBtn.onclick=async()=>{await primeAudio();state==='lead-in'?cancelLead():state==='running'?pause():start();}; resetBtn.onclick=reset; skipBtn.onclick=async()=>{await primeAudio();skip();};
   $$('.mode-tab').forEach(b=>b.onclick=()=>{ mode=b.dataset.mode; $$('.mode-tab').forEach(x=>x.classList.toggle('active',x===b));quickPanel.style.display=mode==='quick'?'block':'none';intervalPanel.classList.toggle('show',mode==='interval');roundStrip.classList.toggle('show',mode==='interval');reset(); });
   $$('.preset-grid .steel-btn').forEach(b=>b.onclick=()=>setQuick(+b.dataset.seconds));
   $('#plusBtn').onclick=()=>{selectedSeconds=Math.min(3600,Math.ceil(remainingMs/1000)+5);remainingMs+=5000;durationMs=Math.max(durationMs,remainingMs);render();};
@@ -358,7 +402,8 @@
   $('#leadInBtn').onclick=()=>{leadInEnabled=!leadInEnabled;$('#leadInBtn').classList.toggle('selected',leadInEnabled);$('#leadInBtn').setAttribute('aria-pressed',String(leadInEnabled));};
   $$('[data-step]').forEach(b=>b.onclick=()=>{const k=b.dataset.step,d=+b.dataset.delta;values[k]=Math.max(k==='rounds'?1:k==='rest'?0:5,Math.min(k==='rounds'?50:3600,values[k]+d));$(`#${k}Value`).textContent=values[k];if(state==='ready')reset();});
   themeSelect?.addEventListener('change',e=>applyTheme(e.target.value));
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&state==='running'){tick();requestWake();}});
+  document.addEventListener('visibilitychange',async()=>{if(document.visibilityState==='visible'){await unlockAudio();if(state==='running'){tick();requestWake();}}});
+  $('#soundToggle').addEventListener('change',async e=>{if(e.target.checked)await primeAudio();});
   try{applyTheme(localStorage.getItem('billsTimerTheme')||'dustyGreen');}catch(e){applyTheme('dustyGreen');}
   render();
 })();
