@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#111419">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>bill's time</title>
+  <title>bill's timer</title>
   <style>
     @font-face {
       font-family: 'Bauhaus';
@@ -61,14 +61,16 @@
     .round-strip .line:last-child { transform:scaleX(-1); }
     .panel { margin-bottom:12px; padding:14px; border:1px solid #343d47; border-radius:18px; background:linear-gradient(145deg,rgba(35,41,49,.94),rgba(15,18,23,.96)); box-shadow:inset 0 1px rgba(255,255,255,.05),0 10px 24px rgba(0,0,0,.3); }
     .panel-title { margin:0 0 10px; color:#aab4bd; font-size:11px; font-weight:900; letter-spacing:2px; text-transform:uppercase; }
-    .preset-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
-    .steel-btn { position:relative; border:1px solid #4b5661; border-radius:12px; min-height:48px; color:#e7edf2; font-weight:800; background:linear-gradient(180deg,#303843,#191e24); box-shadow:inset 0 1px rgba(255,255,255,.12),inset 0 -5px 10px rgba(0,0,0,.2),0 4px 9px rgba(0,0,0,.32); }
+    .preset-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:9px 16px; padding:0 10px; }
+    .steel-btn { position:relative; border:1px solid #4b5661; border-radius:999px; min-height:42px; color:#e7edf2; font-weight:800; background:linear-gradient(180deg,#303843,#252a31); box-shadow:inset 0 1px rgba(255,255,255,.12),inset 0 -3px 7px rgba(0,0,0,.18),0 3px 7px rgba(0,0,0,.28); }
     .steel-btn:active { transform:translateY(1px); filter:brightness(1.12); }
     .steel-btn.selected { color:#101511; border-color:#9eaaa0; background:linear-gradient(180deg,#aebcaf,#718a74); box-shadow:0 2px 0 #313a33,0 0 0 1px rgba(199,206,211,.22),0 0 14px rgba(199,206,211,.10),inset 0 1px rgba(255,255,255,.34); }
-    .adjust-row { display:grid; grid-template-columns:1fr 1.5fr 1fr; gap:8px; margin-top:9px; }
-    .adjust-row .steel-btn { font-size:18px; }
-    .custom-row { display:grid; grid-template-columns:1fr auto; gap:8px; margin-top:9px; }
-    .custom-input { min-width:0; border:1px solid #47525e; border-radius:12px; padding:0 13px; color:#fff; background:#0d1014; box-shadow:inset 0 3px 9px #000; }
+    .adjust-row { display:grid; grid-template-columns:1fr 1.65fr 1fr; gap:14px; margin-top:10px; }
+    .adjust-row .steel-btn { font-size:16px; }
+    .custom-row { display:grid; grid-template-columns:1fr 1.65fr 1fr; gap:14px; margin-top:10px; }
+    .custom-input { width:100%; min-width:0; min-height:42px; border:1px solid #4b5661; border-radius:999px; padding:0 12px; text-align:center; color:#fff; background:linear-gradient(180deg,#303843,#252a31); box-shadow:inset 0 1px rgba(255,255,255,.12),inset 0 -3px 7px rgba(0,0,0,.18),0 3px 7px rgba(0,0,0,.28); }
+    .custom-input::placeholder { color:#e7edf2; opacity:1; }
+    .compact-label { font-size:10px; line-height:1.05; padding:3px 8px; }
     .interval-panel { display:none; }
     .interval-panel.show { display:block; }
     .settings-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
@@ -104,7 +106,7 @@
       .status { margin-top:6px; }
       .panel { margin-bottom:9px; padding:11px 13px; border-radius:16px; }
       .panel-title { margin-bottom:8px; }
-      .preset-grid { gap:7px; }
+      .preset-grid { gap:7px 12px; padding:0 6px; }
       .steel-btn { min-height:44px; }
       .adjust-row, .custom-row { margin-top:7px; gap:7px; }
       .custom-input { min-height:44px; }
@@ -127,7 +129,7 @@
 </head>
 <body>
   <main class="app" id="app">
-    <header class="brand"><div class="logo">bill's <span>time</span></div><div class="tag">fitness timer</div></header>
+    <header class="brand"><div class="logo">bill's <span>timer</span></div><div class="tag">fitness timer</div></header>
     <nav class="mode-tabs" aria-label="Timer mode">
       <button class="mode-tab active" data-mode="quick">Quick Timer</button>
       <button class="mode-tab" data-mode="interval">Intervals</button>
@@ -142,11 +144,11 @@
     <section class="panel quick-panel" id="quickPanel">
       <h2 class="panel-title">Quick Select</h2>
       <div class="preset-grid">
-        <button class="steel-btn" data-seconds="30">30 sec</button><button class="steel-btn" data-seconds="35">35 sec</button><button class="steel-btn selected" data-seconds="40">40 sec</button>
-        <button class="steel-btn" data-seconds="45">45 sec</button><button class="steel-btn" data-seconds="60">1:00</button><button class="steel-btn" data-seconds="90">1:30</button>
+        <button class="steel-btn" data-seconds="15">15</button><button class="steel-btn" data-seconds="30">30</button>
+        <button class="steel-btn selected" data-seconds="45">45</button><button class="steel-btn" data-seconds="60">1:00</button>
       </div>
       <div class="adjust-row"><button class="steel-btn" id="minusBtn">−5</button><button class="steel-btn" id="restartBtn">Restart Time</button><button class="steel-btn" id="plusBtn">+5</button></div>
-      <div class="custom-row"><input class="custom-input" id="customInput" type="number" inputmode="numeric" min="1" max="3600" placeholder="Custom seconds"><button class="steel-btn" id="customSetBtn">Set</button></div>
+      <div class="custom-row"><button class="steel-btn compact-label selected" id="leadInBtn" aria-pressed="true">5 second<br>lead in</button><input class="custom-input" id="customInput" type="number" inputmode="numeric" min="1" max="3600" placeholder="custom time"><button class="steel-btn" id="customSetBtn">Set</button></div>
     </section>
 
     <section class="panel interval-panel" id="intervalPanel">
@@ -171,41 +173,98 @@
   const startBtn=$('#startBtn'), resetBtn=$('#resetBtn'), skipBtn=$('#skipBtn'), roundStrip=$('#roundStrip'), roundLabel=$('#roundLabel');
   const quickPanel=$('#quickPanel'), intervalPanel=$('#intervalPanel');
   const values={work:40,rest:20,rounds:5};
-  let mode='quick', selectedSeconds=40, remainingMs=40000, durationMs=40000, targetTime=0, ticker=null;
-  let state='ready', phase='work', currentRound=1, audioCtx=null, wakeLock=null, lastShown=null;
+  let mode='quick', selectedSeconds=45, remainingMs=45000, durationMs=45000, targetTime=0, ticker=null;
+  let state='ready', phase='work', currentRound=1, audioCtx=null, masterGain=null, compressor=null, wakeLock=null, lastShown=null, leadInEnabled=true, leadRemainingMs=0;
 
   const format = ms => { const s=Math.max(0,Math.ceil(ms/1000)); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; };
-  function unlockAudio(){ try { audioCtx ||= new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended') audioCtx.resume(); } catch(e){} }
-  function tone(freq=700,duration=.12,volume=.18,delay=0){ if(!$('#soundToggle').checked||!audioCtx)return; const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime+delay; o.connect(g);g.connect(audioCtx.destination);o.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(volume,t);g.gain.exponentialRampToValueAtTime(.001,t+duration);o.start(t);o.stop(t+duration); }
+  function unlockAudio(){
+    try {
+      audioCtx ||= new (window.AudioContext||window.webkitAudioContext)();
+      if(!compressor){
+        compressor=audioCtx.createDynamicsCompressor();
+        compressor.threshold.value=-22; compressor.knee.value=16; compressor.ratio.value=8; compressor.attack.value=.002; compressor.release.value=.22;
+        masterGain=audioCtx.createGain(); masterGain.gain.value=1;
+        compressor.connect(masterGain); masterGain.connect(audioCtx.destination);
+      }
+      if(audioCtx.state==='suspended') audioCtx.resume();
+    } catch(e){}
+  }
+  function tone(freq=700,duration=.12,volume=.18,delay=0,type='sine'){
+    if(!$('#soundToggle').checked||!audioCtx||!compressor)return;
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime+delay;
+    o.type=type;o.connect(g);g.connect(compressor);o.frequency.setValueAtTime(freq,t);
+    g.gain.setValueAtTime(Math.max(.001,volume),t);g.gain.exponentialRampToValueAtTime(.001,t+duration);
+    o.start(t);o.stop(t+duration+.02);
+  }
+  function startDing(){
+    tone(1046,.34,.72,0,'sine'); tone(1568,.38,.48,0,'triangle'); tone(2093,.28,.28,.01,'sine');
+  }
+  function boxingBell(){
+    if(!$('#soundToggle').checked||!audioCtx)return;
+    [0,.46,.92].forEach((d,i)=>{
+      tone(860,.55,.92,d,'square'); tone(1290,.72,.78,d,'triangle'); tone(1720,.88,.48,d+.01,'sine'); tone(2580,.42,.28,d+.015,'sine');
+      tone(205,.24,.52,d,'square');
+    });
+  }
   function speak(text){ if($('#voiceToggle').checked&&'speechSynthesis'in window){ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text);u.rate=1.05;u.volume=.9;speechSynthesis.speak(u); } }
   async function requestWake(){ try { if('wakeLock'in navigator) wakeLock=await navigator.wakeLock.request('screen'); }catch(e){} }
   function releaseWake(){ try{wakeLock?.release();}catch(e){} wakeLock=null; }
 
   function setVisualClass(){ app.classList.toggle('warning',state==='running'&&remainingMs<=10000);app.classList.toggle('resting',mode==='interval'&&phase==='rest'&&state!=='finished');app.classList.toggle('finished',state==='finished'); }
   function render(){
-    display.textContent=format(remainingMs);
-    const pct=durationMs?Math.max(0,Math.min(1,1-remainingMs/durationMs)):0;
+    const shownMs=state==='lead-in'?leadRemainingMs:remainingMs;
+    display.textContent=format(shownMs);
+    const pct=state==='lead-in'?Math.max(0,Math.min(1,1-leadRemainingMs/5000)):(durationMs?Math.max(0,Math.min(1,1-remainingMs/durationMs)):0);
     document.documentElement.style.setProperty('--progress',`${pct*360}deg`);
-    status.textContent=state==='running'?'running':state==='paused'?'paused':state==='finished'?'complete':'ready';
-    phaseLabel.textContent=mode==='quick'?'QUICK TIMER':state==='finished'?'WORKOUT COMPLETE':phase.toUpperCase();
+    status.textContent=state==='lead-in'?'get ready':state==='running'?'running':state==='paused'?'paused':state==='finished'?'complete':'ready';
+    phaseLabel.textContent=state==='lead-in'?'GET READY':mode==='quick'?'QUICK TIMER':state==='finished'?'WORKOUT COMPLETE':phase.toUpperCase();
     roundLabel.textContent=`ROUND ${currentRound} OF ${values.rounds}`;
-    startBtn.textContent=state==='running'?'Pause':state==='paused'?'Resume':state==='finished'?'Again':'Start';
+    startBtn.textContent=state==='lead-in'?'Cancel':state==='running'?'Pause':state==='paused'?'Resume':state==='finished'?'Again':'Start';
     skipBtn.disabled=mode==='quick'||state==='ready'||state==='finished';
     setVisualClass();
   }
   function setQuick(seconds){ stopTicker(); selectedSeconds=Math.max(5,Math.min(3600,seconds));remainingMs=durationMs=selectedSeconds*1000;state='ready'; $$('.preset-grid .steel-btn').forEach(b=>b.classList.toggle('selected',+b.dataset.seconds===selectedSeconds));render(); }
   function setPhase(next, announce=true){ phase=next; durationMs=remainingMs=(phase==='work'?values.work:values.rest)*1000; lastShown=null; if(announce){ tone(phase==='work'?880:520,.18,.2);speak(phase==='work'?`Work. Round ${currentRound}`:'Rest'); } render(); }
-  function tick(){ remainingMs=Math.max(0,targetTime-Date.now()); const shown=Math.ceil(remainingMs/1000); if(shown!==lastShown){ lastShown=shown; if(shown>0&&shown<=5){ /* Louder five-second countdown: a strong main beep plus a lighter upper layer. */ tone(610+shown*55,.16,.46); tone(915+shown*45,.12,.22,.015); } } render(); if(remainingMs<=0) completePhase(); }
-  function startTicker(){ clearInterval(ticker);targetTime=Date.now()+remainingMs;ticker=setInterval(tick,100);tick();requestWake(); }
+  function tick(){
+    if(state==='lead-in'){
+      leadRemainingMs=Math.max(0,targetTime-Date.now());
+      const shown=Math.ceil(leadRemainingMs/1000);
+      if(shown!==lastShown){
+        lastShown=shown;
+        if(shown>0&&shown<=3){ tone(690+shown*55,.18,.54); tone(1030+shown*45,.13,.24,.015); }
+      }
+      render();
+      if(leadRemainingMs<=0){
+        clearInterval(ticker); ticker=null; startDing(); speak('Go');
+        state='running'; lastShown=null; targetTime=Date.now()+remainingMs; ticker=setInterval(tick,100); render();
+      }
+      return;
+    }
+    remainingMs=Math.max(0,targetTime-Date.now()); const shown=Math.ceil(remainingMs/1000);
+    if(shown!==lastShown){ lastShown=shown; if(shown>0&&shown<=5){ tone(610+shown*55,.16,.46); tone(915+shown*45,.12,.22,.015); } }
+    render(); if(remainingMs<=0) completePhase();
+  }
+  function startTicker(withLead=false){
+    clearInterval(ticker); lastShown=null;
+    if(withLead){ state='lead-in'; leadRemainingMs=5000; targetTime=Date.now()+5000; }
+    else { state='running'; targetTime=Date.now()+remainingMs; }
+    ticker=setInterval(tick,100);tick();requestWake();
+  }
   function stopTicker(){ clearInterval(ticker);ticker=null;releaseWake(); }
-  function start(){ unlockAudio();app.classList.remove('finished'); if(state==='finished'){ reset(); } if(remainingMs<=0) reset();state='running';startTicker();render(); }
+  function start(){
+    unlockAudio();app.classList.remove('finished');
+    if(state==='finished') reset();
+    if(remainingMs<=0) reset();
+    startTicker(leadInEnabled&&state==='ready'); render();
+  }
+  function cancelLead(){ stopTicker(); leadRemainingMs=0; state='ready'; lastShown=null; render(); }
   function pause(){ remainingMs=Math.max(0,targetTime-Date.now());stopTicker();state='paused';render(); }
   function completePhase(){ stopTicker(); if(mode==='quick'){ finish();return; } if(phase==='work'&&values.rest>0){ setPhase('rest');state='running';startTicker();return; } if(phase==='rest'||values.rest===0){ if(currentRound<values.rounds){currentRound++;setPhase('work');state='running';startTicker();}else finish(); } }
-  function finish(){ remainingMs=0;state='finished';/* Louder, layered completion chime. Final loudness still follows the phone's media volume. */tone(740,.34,.72,0);tone(1110,.34,.48,0);tone(880,.34,.76,.30);tone(1320,.34,.50,.30);tone(1040,.58,.82,.60);tone(1560,.58,.52,.60);speak('Workout complete');if(navigator.vibrate)navigator.vibrate([150,80,150,80,300]);render();setTimeout(()=>app.classList.remove('finished'),3000); }
-  function reset(){ stopTicker();state='ready';currentRound=1;phase='work'; if(mode==='quick'){remainingMs=durationMs=selectedSeconds*1000;}else{remainingMs=durationMs=values.work*1000;} lastShown=null;render(); }
+  function finish(){ remainingMs=0;state='finished';boxingBell();speak('Workout complete');if(navigator.vibrate)navigator.vibrate([220,90,220,90,420]);render();setTimeout(()=>app.classList.remove('finished'),3600); }
+  function reset(){ stopTicker();state='ready';currentRound=1;phase='work'; if(mode==='quick'){remainingMs=durationMs=selectedSeconds*1000;}else{remainingMs=durationMs=values.work*1000;} leadRemainingMs=0;lastShown=null;render(); }
   function skip(){ if(mode==='interval'&&state!=='ready'&&state!=='finished'){remainingMs=0;completePhase();} }
 
-  startBtn.onclick=()=>state==='running'?pause():start(); resetBtn.onclick=reset; skipBtn.onclick=skip;
+  startBtn.onclick=()=>state==='lead-in'?cancelLead():state==='running'?pause():start(); resetBtn.onclick=reset; skipBtn.onclick=skip;
   $$('.mode-tab').forEach(b=>b.onclick=()=>{ mode=b.dataset.mode; $$('.mode-tab').forEach(x=>x.classList.toggle('active',x===b));quickPanel.style.display=mode==='quick'?'block':'none';intervalPanel.classList.toggle('show',mode==='interval');roundStrip.classList.toggle('show',mode==='interval');reset(); });
   $$('.preset-grid .steel-btn').forEach(b=>b.onclick=()=>setQuick(+b.dataset.seconds));
   $('#plusBtn').onclick=()=>{selectedSeconds=Math.min(3600,Math.ceil(remainingMs/1000)+5);remainingMs+=5000;durationMs=Math.max(durationMs,remainingMs);render();};
@@ -213,6 +272,7 @@
   $('#restartBtn').onclick=()=>setQuick(selectedSeconds);
   function customSet(){const n=+$('#customInput').value;if(n>=1&&n<=3600){setQuick(n);$('#customInput').value='';}}
   $('#customSetBtn').onclick=customSet;$('#customInput').addEventListener('keydown',e=>{if(e.key==='Enter')customSet();});
+  $('#leadInBtn').onclick=()=>{leadInEnabled=!leadInEnabled;$('#leadInBtn').classList.toggle('selected',leadInEnabled);$('#leadInBtn').setAttribute('aria-pressed',String(leadInEnabled));};
   $$('[data-step]').forEach(b=>b.onclick=()=>{const k=b.dataset.step,d=+b.dataset.delta;values[k]=Math.max(k==='rounds'?1:k==='rest'?0:5,Math.min(k==='rounds'?50:3600,values[k]+d));$(`#${k}Value`).textContent=values[k];if(state==='ready')reset();});
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&state==='running'){tick();requestWake();}});
   render();
