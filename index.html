@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#111419">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -29,7 +29,17 @@
       --progress:0deg; --accent:var(--green);
     }
     * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-    html,body { margin:0; min-height:100%; background:var(--bg); color:var(--text); }
+    html,body {
+      margin:0;
+      min-height:100%;
+      width:100%;
+      background:var(--bg);
+      color:var(--text);
+      overflow-x:hidden;
+      overscroll-behavior:none;
+      -webkit-text-size-adjust:100%;
+      text-size-adjust:100%;
+    }
     body {
       min-height:100svh; overflow-x:hidden; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       padding:calc(14px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));
@@ -41,8 +51,8 @@
     body::before { content:""; position:fixed; inset:0; pointer-events:none; opacity:.28;
       background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);
       background-size:22px 22px; }
-    button,input { font:inherit; }
-    button { touch-action:manipulation; }
+    button,input,select { font:inherit; }
+    button,input,select { touch-action:manipulation; }
     .app { width:min(100%,520px); margin:auto; }
     .brand { display:flex; align-items:flex-end; justify-content:space-between; margin:0 4px 12px; }
     .logo { font-family:Bauhaus,"Arial Black",sans-serif; font-size:clamp(30px,8vw,43px); line-height:.9; letter-spacing:-1px; text-transform:lowercase; color:var(--green-light); text-shadow:0 2px 0 rgba(0,0,0,.65),1px 0 0 rgba(255,255,255,.14),0 0 14px rgba(199,206,211,.18); }
@@ -144,7 +154,9 @@
       .theme-bar { margin-top:9px; gap:8px; }
       .theme-select { min-width:170px; min-height:38px; }
     }
-    @media (max-height:740px) {
+    /* Only compress genuinely small phones. Do not key this layout to height alone:
+       iOS Safari changes viewport height as browser chrome appears/disappears. */
+    @media (max-width:390px) and (max-height:740px) {
       .brand { display:flex; margin:0 3px 7px; align-items:center; }
       .logo { font-size:28px; line-height:.86; }
       .tag { font-size:9px; letter-spacing:1.6px; padding-bottom:0; }
@@ -225,6 +237,7 @@
   };
   let mode='quick', selectedSeconds=45, remainingMs=45000, durationMs=45000, targetTime=0, ticker=null;
   let state='ready', phase='work', currentRound=1, audioCtx=null, masterGain=null, compressor=null, wakeLock=null, lastShown=null, leadInEnabled=true, leadRemainingMs=0;
+  let speechUtterance=null;
 
   const format = ms => { const s=Math.max(0,Math.ceil(ms/1000)); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; };
   function buildAudioGraph(){
@@ -313,13 +326,23 @@
   }
   function speak(text){
     if($('#voiceToggle').checked&&'speechSynthesis'in window){
-      speechSynthesis.cancel();
+      const synth=window.speechSynthesis;
+      if(synth.paused) synth.resume();
+      if(synth.speaking||synth.pending) synth.cancel();
       const u=new SpeechSynthesisUtterance(text);u.rate=1;u.pitch=1;u.volume=1;
-      const voices=speechSynthesis.getVoices();
+      speechUtterance=u; // Keep a live reference; iOS can otherwise drop an utterance.
+      const voices=synth.getVoices();
       const preferred=voices.find(v=>/Samantha|Karen|Daniel|Alex/i.test(v.name))||voices.find(v=>v.lang?.startsWith('en'));
       if(preferred)u.voice=preferred;
-      u.onend=()=>{ if($('#soundToggle').checked&&audioCtx?.state!=='running'){ try{audioCtx.resume().catch(()=>{});}catch(e){} } };
-      speechSynthesis.speak(u);
+      const afterSpeech=()=>{
+        if(speechUtterance===u) speechUtterance=null;
+        if($('#soundToggle').checked&&audioCtx?.state!=='running'){
+          try{audioCtx?.resume()?.catch?.(()=>{});}catch(e){}
+        }
+      };
+      u.onend=afterSpeech;
+      u.onerror=afterSpeech;
+      synth.speak(u);
     }
   }
 
@@ -423,8 +446,26 @@
   $('#leadInBtn').onclick=()=>{leadInEnabled=!leadInEnabled;$('#leadInBtn').classList.toggle('selected',leadInEnabled);$('#leadInBtn').setAttribute('aria-pressed',String(leadInEnabled));};
   $$('[data-step]').forEach(b=>b.onclick=()=>{const k=b.dataset.step,d=+b.dataset.delta;values[k]=Math.max(k==='rounds'?1:k==='rest'?0:5,Math.min(k==='rounds'?50:3600,values[k]+d));$(`#${k}Value`).textContent=values[k];if(state==='ready')reset();});
   themeSelect?.addEventListener('change',e=>applyTheme(e.target.value));
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){activateAudio();if(state==='running'){tick();requestWake();}}});
+  function rearmMedia(){
+    activateAudio();
+    if('speechSynthesis'in window&&speechSynthesis.paused){
+      try{speechSynthesis.resume();}catch(e){}
+    }
+  }
+  /* Any real user touch is another chance to satisfy iOS's audio-gesture rule. */
+  document.addEventListener('pointerdown',rearmMedia,{capture:true,passive:true});
+  window.addEventListener('pageshow',rearmMedia);
+  window.addEventListener('focus',rearmMedia);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){rearmMedia();if(state==='running'){tick();requestWake();}}});
   $('#soundToggle').addEventListener('change',e=>{if(e.target.checked)activateAudio();});
+  $('#voiceToggle').addEventListener('change',e=>{
+    if(e.target.checked&&'speechSynthesis'in window){
+      try{speechSynthesis.getVoices(); if(speechSynthesis.paused)speechSynthesis.resume();}catch(err){}
+    }else if(!e.target.checked&&'speechSynthesis'in window){
+      try{speechSynthesis.cancel();}catch(err){}
+      speechUtterance=null;
+    }
+  });
   try{applyTheme(localStorage.getItem('billsTimerTheme')||'dustyGreen');}catch(e){applyTheme('dustyGreen');}
   render();
 })();
