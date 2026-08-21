@@ -42,7 +42,7 @@
       touch-action:manipulation;
     }
     body {
-      min-height:var(--stable-vh,100svh); overflow-x:hidden; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      min-height:100svh; overflow-x:hidden; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       padding:calc(14px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));
       background:
         radial-gradient(circle at 50% -10%, rgba(127,153,130,.16), transparent 38%),
@@ -595,16 +595,6 @@
   let state='ready', phase='work', currentRound=1, audioCtx=null, masterGain=null, compressor=null, wakeLock=null, lastShown=null, leadInEnabled=true, leadRemainingMs=0;
   let speechUtterance=null, speechSeq=0, speechWatchdog=null, audioRecoveryTimer=null;
 
-  /* Freeze the app's working height so Safari's address/tool bars do not
-     resize the timer while the user is pressing controls. Recalculate only
-     for a real orientation change. */
-  function lockViewportHeight(){
-    const h=Math.round(window.innerHeight||document.documentElement.clientHeight||0);
-    if(h>0) document.documentElement.style.setProperty('--stable-vh',`${h}px`);
-  }
-  lockViewportHeight();
-  window.addEventListener('orientationchange',()=>setTimeout(lockViewportHeight,180));
-
   /* WebKit can leave an AudioContext interrupted or otherwise non-running
      after Siri, phone audio, app switching, etc. */
   function disposeAudio(){
@@ -788,6 +778,15 @@
   async function requestWake(){ try { if('wakeLock'in navigator) wakeLock=await navigator.wakeLock.request('screen'); }catch(e){} }
   function releaseWake(){ try{wakeLock?.release();}catch(e){} wakeLock=null; }
 
+  function normalizeQuickScroll(){
+    if(mode!=='quick') return;
+    requestAnimationFrame(()=>{
+      const scroller=document.scrollingElement||document.documentElement;
+      if(scroller.scrollTop!==0) scroller.scrollTop=0;
+      if(window.scrollY!==0) window.scrollTo(0,0);
+    });
+  }
+
   function setVisualClass(){ app.classList.toggle('warning',state==='running'&&remainingMs<=10000);app.classList.toggle('resting',mode==='interval'&&phase==='rest'&&state!=='finished');app.classList.toggle('finished',state==='finished'); }
   function render(){
     const shownMs=state==='lead-in'?leadRemainingMs:remainingMs;
@@ -860,7 +859,7 @@
   function skip(){ if(mode==='interval'&&state!=='ready'&&state!=='finished'){remainingMs=0;completePhase();} }
 
   startBtn.onclick=()=>{activateAudio();state==='lead-in'?cancelLead():state==='running'?pause():start();}; resetBtn.onclick=reset; skipBtn.onclick=()=>{activateAudio();skip();};
-  $$('.mode-tab').forEach(b=>b.onclick=()=>{ mode=b.dataset.mode; $$('.mode-tab').forEach(x=>x.classList.toggle('active',x===b));quickPanel.style.display=mode==='quick'?'block':'none';intervalPanel.classList.toggle('show',mode==='interval');roundStrip.classList.toggle('show',mode==='interval');reset(); });
+  $$('.mode-tab').forEach(b=>b.onclick=()=>{ mode=b.dataset.mode;document.body.classList.toggle('mode-quick',mode==='quick');document.body.classList.toggle('mode-interval',mode==='interval'); $$('.mode-tab').forEach(x=>x.classList.toggle('active',x===b));quickPanel.style.display=mode==='quick'?'block':'none';intervalPanel.classList.toggle('show',mode==='interval');roundStrip.classList.toggle('show',mode==='interval');reset();normalizeQuickScroll(); });
   $$('.preset-grid .steel-btn').forEach(b=>b.onclick=()=>setQuick(+b.dataset.seconds));
   $('#plusBtn').onclick=()=>{selectedSeconds=Math.min(3600,Math.ceil(remainingMs/1000)+5);remainingMs+=5000;durationMs=Math.max(durationMs,remainingMs);render();};
   $('#minusBtn').onclick=()=>{remainingMs=Math.max(5000,remainingMs-5000);selectedSeconds=Math.ceil(remainingMs/1000);durationMs=Math.max(remainingMs,selectedSeconds*1000);render();};
@@ -878,8 +877,8 @@
   }
   /* Any real user touch is another chance to satisfy iOS's audio-gesture rule. */
   document.addEventListener('pointerdown',rearmMedia,{capture:true,passive:true});
-  window.addEventListener('pageshow',rearmMedia);
-  window.addEventListener('focus',rearmMedia);
+  window.addEventListener('pageshow',()=>{rearmMedia();normalizeQuickScroll();});
+  window.addEventListener('focus',()=>{rearmMedia();normalizeQuickScroll();});
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){recoverAudio(true);rearmMedia();if(state==='running'){tick();requestWake();}}});
   /* Prevent iOS pinch-gesture zoom without suppressing normal button taps. */
   ['gesturestart','gesturechange','gestureend'].forEach(type=>{
@@ -897,7 +896,9 @@
     }
   });
   try{applyTheme(localStorage.getItem('billsTimerTheme')||'dustyGreen');}catch(e){applyTheme('dustyGreen');}
+  document.body.classList.add('mode-quick');
   render();
+  normalizeQuickScroll();
 })();
 </script>
 </body>
