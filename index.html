@@ -568,7 +568,7 @@
         <button class="steel-btn selected" data-seconds="45">:45</button><button class="steel-btn" data-seconds="60">1:00</button>
       </div>
       <div class="adjust-row"><button class="steel-btn" id="minusBtn">− :05</button><button class="steel-btn" id="restartBtn">Restart Time</button><button class="steel-btn" id="plusBtn">+ :05</button></div>
-      <div class="custom-row"><button class="steel-btn compact-label selected" id="leadInBtn" aria-pressed="true">5 second<br>lead in</button><div class="time-input-group" aria-label="Custom timer duration"><input class="custom-input" id="customMinutes" type="number" inputmode="numeric" min="0" max="59" placeholder="min" aria-label="Minutes"><span>:</span><input class="custom-input" id="customSeconds" type="number" inputmode="numeric" min="0" max="59" placeholder="sec" aria-label="Seconds"></div><button class="steel-btn" id="customSetBtn">Set</button></div>
+      <div class="custom-row"><button class="steel-btn compact-label selected" id="leadInBtn" aria-pressed="true">5 second<br>lead in</button><div class="time-input-group" aria-label="Custom timer duration"><input class="custom-input" id="customMinutes" type="number" inputmode="numeric" min="0" placeholder="min" aria-label="Minutes"><span>:</span><input class="custom-input" id="customSeconds" type="number" inputmode="numeric" min="0" placeholder="sec" aria-label="Seconds"></div><button class="steel-btn" id="customSetBtn">Set</button></div>
     </section>
 
     <section class="panel interval-panel" id="intervalPanel">
@@ -832,7 +832,7 @@
     skipBtn.disabled=mode==='quick'||state==='ready'||state==='finished';
     setVisualClass();
   }
-  function setQuick(seconds){ stopTicker(); selectedSeconds=Math.max(5,Math.min(3600,seconds));remainingMs=durationMs=selectedSeconds*1000;state='ready'; $$('.preset-grid .steel-btn').forEach(b=>b.classList.toggle('selected',+b.dataset.seconds===selectedSeconds));render(); }
+  function setQuick(seconds){ stopTicker(); selectedSeconds=Math.max(1,Math.floor(seconds));remainingMs=durationMs=selectedSeconds*1000;state='ready'; $$('.preset-grid .steel-btn').forEach(b=>b.classList.toggle('selected',+b.dataset.seconds===selectedSeconds));render(); }
   function setPhase(next, announce=true){ phase=next; durationMs=remainingMs=(phase==='work'?values.work:values.rest)*1000; lastShown=null; if(announce){ tone(phase==='work'?880:520,.18,.2);speak(phase==='work'?`Work. Round ${currentRound}`:'Rest'); } render(); }
   function flashCountdown(){
     if(!dialInner)return;
@@ -889,10 +889,10 @@
   startBtn.onclick=()=>{activateAudio();state==='lead-in'?cancelLead():state==='running'?pause():start();}; resetBtn.onclick=reset; skipBtn.onclick=()=>{activateAudio();skip();};
   $$('.mode-tab').forEach(b=>b.onclick=()=>{ mode=b.dataset.mode;document.body.classList.toggle('mode-quick',mode==='quick');document.body.classList.toggle('mode-interval',mode==='interval'); $$('.mode-tab').forEach(x=>x.classList.toggle('active',x===b));quickPanel.style.display=mode==='quick'?'block':'none';intervalPanel.classList.toggle('show',mode==='interval');roundStrip.classList.toggle('show',mode==='interval');reset();normalizeQuickScroll(); });
   $$('.preset-grid .steel-btn').forEach(b=>b.onclick=()=>setQuick(+b.dataset.seconds));
-  $('#plusBtn').onclick=()=>{selectedSeconds=Math.min(3600,Math.ceil(remainingMs/1000)+5);remainingMs+=5000;durationMs=Math.max(durationMs,remainingMs);render();};
+  $('#plusBtn').onclick=()=>{selectedSeconds=Math.ceil(remainingMs/1000)+5;remainingMs+=5000;durationMs=Math.max(durationMs,remainingMs);render();};
   $('#minusBtn').onclick=()=>{remainingMs=Math.max(5000,remainingMs-5000);selectedSeconds=Math.ceil(remainingMs/1000);durationMs=Math.max(remainingMs,selectedSeconds*1000);render();};
   $('#restartBtn').onclick=()=>setQuick(selectedSeconds);
-  function customSet(){const m=Math.max(0,+$('#customMinutes').value||0),s=Math.max(0,+$('#customSeconds').value||0);const total=Math.min(3600,m*60+s);if(total>=1){setQuick(total);$('#customMinutes').value='';$('#customSeconds').value='';}}
+  function customSet(){const m=Math.max(0,+$('#customMinutes').value||0),s=Math.max(0,+$('#customSeconds').value||0);const total=m*60+s;if(total>=1){setQuick(total);$('#customMinutes').value='';$('#customSeconds').value='';}}
   $('#customSetBtn').onclick=customSet;[$('#customMinutes'),$('#customSeconds')].forEach(el=>el.addEventListener('keydown',e=>{if(e.key==='Enter')customSet();}));
   $('#leadInBtn').onclick=()=>{leadInEnabled=!leadInEnabled;$('#leadInBtn').classList.toggle('selected',leadInEnabled);$('#leadInBtn').setAttribute('aria-pressed',String(leadInEnabled));render();};
   $$('[data-step]').forEach(b=>b.onclick=()=>{const k=b.dataset.step,d=+b.dataset.delta;values[k]=Math.max(k==='rounds'?1:k==='rest'?0:5,Math.min(k==='rounds'?50:3600,values[k]+d));$(`#${k}Value`).textContent=values[k];if(state==='ready')reset();});
