@@ -170,6 +170,352 @@
       .steel-btn { min-height:41px; }
       .main-btn { min-height:49px; }
     }
+
+    /* =========================================================
+       THEME / SIGNATURE PACK 01 — RETRO + FANTASY
+       Visual-only adapters. Geometry, controls and timer logic stay locked.
+       ========================================================= */
+    body.theme-signature .stage,
+    body.theme-signature .panel,
+    body.theme-signature .mode-tabs,
+    body.theme-signature .steel-btn,
+    body.theme-signature .main-btn,
+    body.theme-signature .theme-select,
+    body.theme-signature .custom-input,
+    body.theme-signature .setting,
+    body.theme-signature .stepper button {
+      transition:background .22s ease,border-color .22s ease,box-shadow .22s ease,color .22s ease,filter .22s ease;
+    }
+
+    body.theme-steampunk {
+      --bg:#140d08; --panel:#2a1b11; --panel2:#362417; --edge:#7f5a32;
+      --text:#f3dfb8; --muted:#b79a6f; --silver:#d5b16d; --shadow:rgba(0,0,0,.66);
+      background:
+        radial-gradient(circle at 50% -12%, rgba(195,127,53,.22), transparent 34%),
+        repeating-linear-gradient(90deg, rgba(255,225,170,.018) 0 1px, transparent 1px 7px),
+        linear-gradient(180deg,#24160d,#100a07 78%);
+    }
+    body.theme-steampunk::before {
+      opacity:.45;
+      background-image:
+        radial-gradient(circle at 12px 12px,#8f6334 0 1.2px,transparent 1.5px),
+        linear-gradient(rgba(255,220,155,.018) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,220,155,.015) 1px,transparent 1px);
+      background-size:34px 34px,22px 22px,22px 22px;
+    }
+    body.theme-steampunk .logo { color:#d7a953; text-shadow:0 2px #3a1f0e,0 0 14px rgba(211,160,70,.22); }
+    body.theme-steampunk .logo span { color:#f1dcae; }
+    body.theme-steampunk .mode-tabs {
+      background:linear-gradient(#25170e,#140c08); border-color:#6f4b29;
+      box-shadow:inset 0 0 0 1px #0c0704,0 8px 22px #000;
+    }
+    body.theme-steampunk .stage {
+      border-color:#8f6738;
+      background:
+        linear-gradient(115deg,rgba(255,222,166,.08),transparent 26% 70%,rgba(255,206,128,.03)),
+        linear-gradient(145deg,#3d2818,#1b100a 58%,#0f0906);
+      box-shadow:inset 0 0 0 2px rgba(77,43,18,.7),inset 0 -24px 50px rgba(0,0,0,.38),0 18px 40px #000;
+    }
+    body.theme-steampunk .stage::after {
+      content:""; position:absolute; inset:7px; border-radius:22px; pointer-events:none;
+      border:1px dashed rgba(194,140,72,.34);
+    }
+    body.theme-steampunk .dial {
+      padding:13px;
+      background:conic-gradient(#d79a3d var(--progress),#4e351d 0);
+      box-shadow:0 0 0 2px #2d1709,0 0 0 5px #8e6233,0 5px 0 #3b220f,inset 0 0 16px #000;
+    }
+    body.theme-steampunk .dial-inner {
+      border-color:#2f190c;
+      background:
+        radial-gradient(circle at 50% 40%,rgba(101,65,34,.5),transparent 44%),
+        repeating-conic-gradient(from 0deg,rgba(213,167,98,.13) 0 1deg,transparent 1deg 15deg),
+        radial-gradient(circle,#24170d 0 62%,#100a07 76%);
+      box-shadow:inset 0 0 36px #000,0 0 0 2px #b17836;
+    }
+    body.theme-steampunk .time { color:#f3d59a; text-shadow:0 4px 14px #000,0 0 8px rgba(216,161,70,.26); }
+    body.theme-steampunk .panel {
+      border-color:#654524;
+      background:
+        repeating-linear-gradient(0deg,rgba(255,220,170,.018) 0 1px,transparent 1px 5px),
+        linear-gradient(145deg,#322116,#160e09);
+    }
+    body.theme-steampunk .steel-btn,
+    body.theme-steampunk .main-btn,
+    body.theme-steampunk .theme-select,
+    body.theme-steampunk .custom-input,
+    body.theme-steampunk .stepper button {
+      color:#f1dfb9; border-color:#75512d;
+      background:linear-gradient(180deg,#50351f,#24170e);
+      box-shadow:inset 0 1px rgba(255,228,176,.16),inset 0 -4px 8px rgba(0,0,0,.28),0 3px 7px rgba(0,0,0,.38);
+    }
+    body.theme-steampunk .mode-tab.active,
+    body.theme-steampunk .steel-btn.selected,
+    body.theme-steampunk .main-btn.primary {
+      color:#211006; border-color:#e1b25f;
+      background:linear-gradient(180deg,#e0b45e,#8d5a24);
+      box-shadow:0 2px 0 #4f2a10,0 0 0 1px rgba(255,221,150,.28),inset 0 1px rgba(255,255,255,.38),0 0 15px rgba(210,149,58,.16);
+    }
+
+    body.theme-artdeco {
+      --bg:#070707; --panel:#11100f; --panel2:#1a1815; --edge:#a88b52;
+      --text:#f6eedc; --muted:#b9a98d; --silver:#d7c08b; --shadow:rgba(0,0,0,.7);
+      background:
+        linear-gradient(135deg,transparent 0 46%,rgba(202,169,102,.055) 46% 47%,transparent 47% 53%,rgba(202,169,102,.04) 53% 54%,transparent 54%),
+        radial-gradient(circle at 50% -5%,rgba(200,168,101,.13),transparent 34%),
+        #080808;
+      background-size:90px 90px,auto,auto;
+    }
+    body.theme-artdeco::before {
+      opacity:.28;
+      background-image:
+        linear-gradient(45deg,transparent 47%,rgba(210,180,115,.12) 48% 49%,transparent 50%),
+        linear-gradient(-45deg,transparent 47%,rgba(210,180,115,.08) 48% 49%,transparent 50%);
+      background-size:48px 48px;
+    }
+    body.theme-artdeco .logo { color:#d6bb7b; }
+    body.theme-artdeco .logo span { color:#fff7e3; }
+    body.theme-artdeco .mode-tabs,
+    body.theme-artdeco .panel,
+    body.theme-artdeco .stage {
+      background:linear-gradient(145deg,#171614,#080808 62%);
+      border-color:#8c7444;
+      box-shadow:inset 0 0 0 1px rgba(224,195,127,.10),0 12px 30px #000;
+    }
+    body.theme-artdeco .stage::after {
+      content:"";position:absolute;inset:7px;pointer-events:none;border-radius:21px;
+      border:1px solid rgba(213,178,102,.26);
+    }
+    body.theme-artdeco .dial {
+      background:conic-gradient(#d0ad61 var(--progress),#28231a 0);
+      box-shadow:0 0 0 2px #0a0a0a,0 0 0 5px #9b7d43,0 5px 0 #111,inset 0 0 18px #000;
+    }
+    body.theme-artdeco .dial-inner {
+      background:
+        radial-gradient(circle,transparent 57%,rgba(214,179,100,.11) 58% 59%,transparent 60%),
+        radial-gradient(circle,#171612,#050505 72%);
+      border-color:#070707; box-shadow:inset 0 0 40px #000,0 0 0 2px #c3a35c;
+    }
+    body.theme-artdeco .phase,body.theme-artdeco .panel-title { letter-spacing:3.2px; color:#cbb175; }
+    body.theme-artdeco .steel-btn,
+    body.theme-artdeco .main-btn,
+    body.theme-artdeco .theme-select,
+    body.theme-artdeco .custom-input,
+    body.theme-artdeco .stepper button {
+      color:#eee5d1;border-color:#71603b;background:linear-gradient(#1c1b18,#090909);
+      box-shadow:inset 0 1px rgba(255,244,214,.08),0 3px 8px #000;
+    }
+    body.theme-artdeco .mode-tab.active,
+    body.theme-artdeco .steel-btn.selected,
+    body.theme-artdeco .main-btn.primary {
+      color:#080808;border-color:#f1d690;background:linear-gradient(#f0d58f,#a88643);
+      box-shadow:0 2px 0 #3c2f17,0 0 12px rgba(223,188,108,.13),inset 0 1px rgba(255,255,255,.45);
+    }
+
+    body.theme-arcade {
+      --bg:#050608; --panel:#141820; --panel2:#1b2230; --edge:#46536b;
+      --text:#f8fbff; --muted:#92a1b8; --silver:#b9c8de; --shadow:rgba(0,0,0,.72);
+      background:
+        radial-gradient(circle at 50% -5%,rgba(255,44,175,.15),transparent 34%),
+        repeating-linear-gradient(0deg,rgba(255,255,255,.016) 0 1px,transparent 1px 4px),
+        linear-gradient(#10131a,#040507 78%);
+    }
+    body.theme-arcade::before {
+      opacity:.36;
+      background-image:linear-gradient(rgba(0,229,255,.035) 1px,transparent 1px);
+      background-size:100% 4px;
+    }
+    body.theme-arcade .logo { color:#30e8ff;text-shadow:0 0 8px rgba(48,232,255,.45),2px 2px #000; }
+    body.theme-arcade .logo span { color:#ff4db8;text-shadow:0 0 8px rgba(255,77,184,.45),2px 2px #000; }
+    body.theme-arcade .mode-tabs,
+    body.theme-arcade .stage,
+    body.theme-arcade .panel {
+      border-color:#3f4e67;background:linear-gradient(145deg,#222937,#0a0c11 64%);
+      box-shadow:inset 0 1px rgba(255,255,255,.07),0 15px 34px #000;
+    }
+    body.theme-arcade .dial {
+      background:conic-gradient(#2ee6ff var(--progress),#222836 0);
+      box-shadow:0 0 0 2px #111722,0 0 0 4px #27364b,0 0 24px rgba(46,230,255,.15),inset 0 0 18px #000;
+    }
+    body.theme-arcade .dial-inner {
+      background:radial-gradient(circle at 50% 45%,#15283a,#05070b 72%);
+      border-color:#111722;box-shadow:inset 0 0 38px #000,0 0 0 2px #52647f,0 0 14px rgba(255,62,181,.10);
+    }
+    body.theme-arcade .time { color:#f7fbff;text-shadow:0 0 8px rgba(60,230,255,.26),0 5px 16px #000; }
+    body.theme-arcade .steel-btn,
+    body.theme-arcade .main-btn,
+    body.theme-arcade .theme-select,
+    body.theme-arcade .custom-input,
+    body.theme-arcade .stepper button {
+      color:#ecf5ff;border-color:#485a76;background:linear-gradient(#2a3343,#10141b);
+      box-shadow:inset 0 2px rgba(255,255,255,.10),inset 0 -4px 8px rgba(0,0,0,.28),0 4px 8px #000;
+    }
+    body.theme-arcade .mode-tab.active,
+    body.theme-arcade .steel-btn.selected,
+    body.theme-arcade .main-btn.primary {
+      color:#061016;border-color:#7ff3ff;background:linear-gradient(#5df2ff,#14aeca);
+      box-shadow:0 3px 0 #075d6c,0 0 16px rgba(46,230,255,.28),inset 0 1px rgba(255,255,255,.52);
+    }
+    body.theme-arcade #leadInBtn.selected { background:linear-gradient(#ff78c6,#be2c84);border-color:#ff9bd7;color:#260517;box-shadow:0 3px 0 #6e174a,0 0 14px rgba(255,77,184,.25); }
+
+    body.theme-synthwave {
+      --bg:#080414; --panel:#151027; --panel2:#20143a; --edge:#573d78;
+      --text:#f8edff; --muted:#ad9bc1; --silver:#d8c6e9; --shadow:rgba(0,0,0,.7);
+      background:
+        linear-gradient(to bottom,transparent 0 64%,rgba(255,48,194,.035) 64%),
+        radial-gradient(ellipse at 50% 6%,rgba(255,49,185,.22),transparent 28%),
+        linear-gradient(180deg,#140722,#06030d 78%);
+    }
+    body.theme-synthwave::before {
+      opacity:.5;
+      background-image:
+        linear-gradient(rgba(48,229,255,.075) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(48,229,255,.06) 1px,transparent 1px);
+      background-size:36px 18px;
+      transform:perspective(420px) rotateX(58deg) scale(1.3);
+      transform-origin:center bottom;
+      inset:52% -20% -35%;
+    }
+    body.theme-synthwave .logo { color:#36e7ff;text-shadow:0 0 9px rgba(54,231,255,.48),0 0 18px rgba(54,231,255,.18); }
+    body.theme-synthwave .logo span { color:#ff4fc4;text-shadow:0 0 9px rgba(255,79,196,.45); }
+    body.theme-synthwave .mode-tabs,
+    body.theme-synthwave .stage,
+    body.theme-synthwave .panel {
+      background:linear-gradient(145deg,rgba(38,18,65,.94),rgba(9,5,18,.97));
+      border-color:#69488f;box-shadow:inset 0 1px rgba(255,255,255,.06),0 14px 35px #000,0 0 18px rgba(255,68,194,.06);
+    }
+    body.theme-synthwave .dial {
+      background:conic-gradient(#37e7ff var(--progress),#302143 0);
+      box-shadow:0 0 0 2px #140a22,0 0 0 4px #7a4ca0,0 0 25px rgba(54,231,255,.18),inset 0 0 18px #000;
+    }
+    body.theme-synthwave .dial-inner {
+      background:radial-gradient(circle at 50% 42%,#26163a,#08040f 72%);
+      border-color:#12081d;box-shadow:inset 0 0 42px #000,0 0 0 2px #8b55b0,0 0 18px rgba(255,79,196,.12);
+    }
+    body.theme-synthwave .phase { color:#ff66cd;text-shadow:0 0 7px rgba(255,79,196,.45); }
+    body.theme-synthwave .steel-btn,
+    body.theme-synthwave .main-btn,
+    body.theme-synthwave .theme-select,
+    body.theme-synthwave .custom-input,
+    body.theme-synthwave .stepper button {
+      color:#f6ecff;border-color:#694789;background:linear-gradient(#32204a,#150b25);
+      box-shadow:inset 0 1px rgba(255,255,255,.09),0 3px 8px #000;
+    }
+    body.theme-synthwave .mode-tab.active,
+    body.theme-synthwave .steel-btn.selected,
+    body.theme-synthwave .main-btn.primary {
+      color:#071018;border-color:#8ff5ff;background:linear-gradient(#6ef0ff,#1bbbd8);
+      box-shadow:0 2px 0 #086577,0 0 16px rgba(54,231,255,.28),inset 0 1px rgba(255,255,255,.5);
+    }
+    body.theme-synthwave #leadInBtn.selected { background:linear-gradient(#ff79d3,#bd2d90);border-color:#ffa1df;color:#230418;box-shadow:0 2px 0 #741553,0 0 14px rgba(255,79,196,.25); }
+
+    body.theme-atomic {
+      --bg:#14292b; --panel:#e7dfca; --panel2:#d7ceb8; --edge:#869997;
+      --text:#213638; --muted:#6c7772; --silver:#d9e1df; --shadow:rgba(0,0,0,.38);
+      background:
+        radial-gradient(circle at 12% 9%,rgba(255,214,149,.10) 0 2px,transparent 2.5px),
+        radial-gradient(circle at 82% 18%,rgba(236,113,92,.10) 0 2px,transparent 2.5px),
+        linear-gradient(180deg,#214347,#102628 78%);
+      background-size:48px 48px,60px 60px,auto;
+    }
+    body.theme-atomic::before {
+      opacity:.22;
+      background-image:radial-gradient(ellipse at center,rgba(242,231,198,.22) 0 1px,transparent 1.5px);
+      background-size:24px 18px;
+    }
+    body.theme-atomic .logo { color:#e8dcc1;text-shadow:0 2px #102224,0 0 12px rgba(255,238,202,.15); }
+    body.theme-atomic .logo span { color:#ef7a64; }
+    body.theme-atomic .tag { color:#b9d0cb; }
+    body.theme-atomic .mode-tabs {
+      background:linear-gradient(#e8dfc8,#c9c0aa);border-color:#9da5a0;box-shadow:inset 0 1px #fff,0 8px 20px rgba(0,0,0,.32);
+    }
+    body.theme-atomic .mode-tab { color:#586662; }
+    body.theme-atomic .stage,
+    body.theme-atomic .panel {
+      color:#263638;border-color:#9aa8a4;
+      background:linear-gradient(145deg,#eee6d1,#cfc6b0);
+      box-shadow:inset 0 1px #fff,inset 0 -16px 28px rgba(80,71,52,.08),0 14px 30px rgba(0,0,0,.3);
+    }
+    body.theme-atomic .phase,body.theme-atomic .panel-title { color:#2d817d; }
+    body.theme-atomic .dial {
+      background:conic-gradient(#45aaa4 var(--progress),#a8b4ae 0);
+      box-shadow:0 0 0 2px #f1ead8,0 0 0 5px #9da6a3,0 5px 0 #61716f,inset 0 0 12px rgba(0,0,0,.3);
+    }
+    body.theme-atomic .dial-inner {
+      background:radial-gradient(circle at 50% 38%,#243b3c,#0f1f20 72%);
+      border-color:#6e7b79;box-shadow:inset 0 0 36px #071213,0 0 0 2px #d9dfdc;
+    }
+    body.theme-atomic .time { color:#f4ead1;text-shadow:0 4px 13px #071213,1px 1px #526b69; }
+    body.theme-atomic .status { color:#aebfba; }
+    body.theme-atomic .steel-btn,
+    body.theme-atomic .main-btn,
+    body.theme-atomic .theme-select,
+    body.theme-atomic .custom-input,
+    body.theme-atomic .stepper button {
+      color:#31423f;border-color:#9aa5a1;background:linear-gradient(#f5edda,#cfc7b4);
+      box-shadow:inset 0 1px #fff,inset 0 -3px 7px rgba(90,80,60,.12),0 3px 7px rgba(0,0,0,.22);
+    }
+    body.theme-atomic .custom-input::placeholder { color:#68736f; }
+    body.theme-atomic .mode-tab.active,
+    body.theme-atomic .steel-btn.selected,
+    body.theme-atomic .main-btn.primary {
+      color:#143334;border-color:#79c8c2;background:linear-gradient(#86d2cc,#3e9b96);
+      box-shadow:0 2px 0 #2b6e69,0 0 0 1px rgba(255,255,255,.45),inset 0 1px rgba(255,255,255,.45);
+    }
+    body.theme-atomic #leadInBtn.selected { background:linear-gradient(#f49a84,#d76651);border-color:#ffc2b3;color:#4a160f; }
+
+    body.theme-oldradio {
+      --bg:#100b08; --panel:#24170f; --panel2:#2f1f14; --edge:#68503b;
+      --text:#ead9b3; --muted:#aa9677; --silver:#c8b388; --shadow:rgba(0,0,0,.67);
+      background:
+        repeating-linear-gradient(94deg,rgba(113,67,34,.15) 0 2px,transparent 2px 9px,rgba(63,35,19,.13) 9px 11px,transparent 11px 18px),
+        linear-gradient(180deg,#28170d,#0d0806 78%);
+    }
+    body.theme-oldradio::before {
+      opacity:.20;
+      background-image:repeating-linear-gradient(0deg,rgba(230,207,161,.09) 0 1px,transparent 1px 5px);
+      background-size:auto;
+    }
+    body.theme-oldradio .logo { color:#c8a873;text-shadow:0 2px #2b170c; }
+    body.theme-oldradio .logo span { color:#f0dfb9; }
+    body.theme-oldradio .mode-tabs,
+    body.theme-oldradio .stage,
+    body.theme-oldradio .panel {
+      border-color:#60452f;
+      background:
+        repeating-linear-gradient(92deg,rgba(126,76,39,.09) 0 2px,transparent 2px 11px),
+        linear-gradient(#2d1d13,#140d09);
+      box-shadow:inset 0 1px rgba(255,226,180,.06),0 15px 32px #000;
+    }
+    body.theme-oldradio .dial {
+      background:conic-gradient(#c88a3a var(--progress),#403221 0);
+      box-shadow:0 0 0 2px #130b07,0 0 0 5px #59412d,0 5px 0 #120b07,inset 0 0 16px #000;
+    }
+    body.theme-oldradio .dial-inner {
+      background:
+        repeating-conic-gradient(from -2deg,rgba(229,190,111,.17) 0 1deg,transparent 1deg 8deg),
+        radial-gradient(circle,#2a1d12 0 60%,#0a0705 74%);
+      border-color:#160d08;box-shadow:inset 0 0 38px #000,0 0 0 2px #8b6a43;
+    }
+    body.theme-oldradio .time {
+      color:#ffc665;text-shadow:0 0 8px rgba(255,179,61,.40),0 0 18px rgba(255,146,33,.14),0 4px 14px #000;
+    }
+    body.theme-oldradio .phase { color:#d4a85c; }
+    body.theme-oldradio .steel-btn,
+    body.theme-oldradio .main-btn,
+    body.theme-oldradio .theme-select,
+    body.theme-oldradio .custom-input,
+    body.theme-oldradio .stepper button {
+      color:#e7d5ae;border-color:#544131;background:linear-gradient(#33261e,#130e0b);
+      box-shadow:inset 0 1px rgba(255,233,193,.08),inset 0 -4px 8px rgba(0,0,0,.3),0 3px 7px #000;
+    }
+    body.theme-oldradio .mode-tab.active,
+    body.theme-oldradio .steel-btn.selected,
+    body.theme-oldradio .main-btn.primary {
+      color:#201105;border-color:#e0b15e;background:linear-gradient(#d8a95a,#825522);
+      box-shadow:0 2px 0 #472a10,0 0 12px rgba(221,164,78,.15),inset 0 1px rgba(255,255,255,.35);
+    }
+
     @media (prefers-reduced-motion:reduce) { * { animation:none!important; transition:none!important; } }
   </style>
 </head>
@@ -210,7 +556,7 @@
       <button class="main-btn" id="resetBtn">Reset</button><button class="main-btn primary" id="startBtn">Start</button><button class="main-btn" id="skipBtn">Skip</button>
     </div>
     <div class="options"><label class="toggle"><input id="soundToggle" type="checkbox" checked> Sound</label><label class="toggle"><input id="voiceToggle" type="checkbox"> Voice cues</label></div>
-    <div class="theme-bar"><span class="theme-label">Theme</span><select id="themeSelect" class="theme-select" aria-label="Choose app theme"><option value="dustyGreen">Dusty Green</option><option value="green">Classic Green</option><option value="darkGreen">Dark Green</option><option value="dustyBlue">Dusty Blue</option><option value="blue">Classic Blue</option><option value="dustyPink">Dusty Pink</option><option value="pink">Classic Pink</option><option value="dustyRed">Dusty Red</option><option value="red">Classic Red</option><option value="dustyPurple">Dusty Purple</option><option value="purple">Classic Purple</option><option value="dustyYellow">Dusty Yellow</option><option value="yellow">Classic Yellow</option><option value="silver">Silver Slate</option><option value="blackoutSilver">Blackout + Silver</option><option value="blackout">Complete Blackout</option></select></div>
+    <div class="theme-bar"><span class="theme-label">Theme</span><select id="themeSelect" class="theme-select" aria-label="Choose app theme"><optgroup label="Original Themes"><option value="dustyGreen">Dusty Green</option><option value="green">Classic Green</option><option value="darkGreen">Dark Green</option><option value="dustyBlue">Dusty Blue</option><option value="blue">Classic Blue</option><option value="dustyPink">Dusty Pink</option><option value="pink">Classic Pink</option><option value="dustyRed">Dusty Red</option><option value="red">Classic Red</option><option value="dustyPurple">Dusty Purple</option><option value="purple">Classic Purple</option><option value="dustyYellow">Dusty Yellow</option><option value="yellow">Classic Yellow</option><option value="silver">Silver Slate</option><option value="blackoutSilver">Blackout + Silver</option><option value="blackout">Complete Blackout</option></optgroup><optgroup label="Retro + Fantasy"><option value="steampunk">Steampunk</option><option value="artdeco">Art Deco</option><option value="arcade">80s Arcade</option><option value="synthwave">Synthwave</option><option value="atomic">Atomic Age</option><option value="oldradio">Old Radio</option></optgroup></select></div>
   </main>
 
 <script>
@@ -237,7 +583,13 @@
     yellow:{accent:'#d3ad22',light:'#f0cf54',dark:'#9c7a08',rgb:'211,173,34',themeColor:'#1a1606',selected:'#1c1600'},
     silver:{accent:'#9baab5',light:'#d1d8de',dark:'#7c8c96',rgb:'155,170,181',themeColor:'#11151a',selected:'#101419'},
     blackoutSilver:{accent:'#aeb6bd',light:'#e2e6e9',dark:'#24292e',rgb:'174,182,189',themeColor:'#050607',selected:'#f1f3f4'},
-    blackout:{accent:'#25292c',light:'#32373b',dark:'#08090a',rgb:'37,41,44',themeColor:'#000000',selected:'#d6d9dc'}
+    blackout:{accent:'#25292c',light:'#32373b',dark:'#08090a',rgb:'37,41,44',themeColor:'#000000',selected:'#d6d9dc'},
+    steampunk:{accent:'#c98a38',light:'#e2b45f',dark:'#80501f',rgb:'201,138,56',themeColor:'#140d08',selected:'#211006'},
+    artdeco:{accent:'#c9a65d',light:'#efd38b',dark:'#8a6b34',rgb:'201,166,93',themeColor:'#070707',selected:'#080808'},
+    arcade:{accent:'#32dff3',light:'#78f1ff',dark:'#149eb8',rgb:'50,223,243',themeColor:'#050608',selected:'#061016'},
+    synthwave:{accent:'#35dff4',light:'#87f4ff',dark:'#179bb8',rgb:'53,223,244',themeColor:'#080414',selected:'#071018'},
+    atomic:{accent:'#49a8a3',light:'#86d0ca',dark:'#377f7b',rgb:'73,168,163',themeColor:'#14292b',selected:'#143334'},
+    oldradio:{accent:'#c68735',light:'#e0b05d',dark:'#7e5120',rgb:'198,135,53',themeColor:'#100b08',selected:'#201105'}
   };
   let mode='quick', selectedSeconds=45, remainingMs=45000, durationMs=45000, targetTime=0, ticker=null;
   let state='ready', phase='work', currentRound=1, audioCtx=null, masterGain=null, compressor=null, wakeLock=null, lastShown=null, leadInEnabled=true, leadRemainingMs=0;
@@ -424,8 +776,12 @@
     root.style.setProperty('--theme-accent-light',theme.light);
     root.style.setProperty('--selected-text',theme.selected);
     themeColorMeta?.setAttribute('content',theme.themeColor);
-    document.body.classList.toggle('theme-blackout-silver',name==='blackoutSilver');
-    document.body.classList.toggle('theme-blackout',name==='blackout');
+    const signatureThemes=['steampunk','artdeco','arcade','synthwave','atomic','oldradio'];
+    const allThemeClasses=['theme-blackout-silver','theme-blackout','theme-signature',...signatureThemes.map(x=>`theme-${x}`)];
+    document.body.classList.remove(...allThemeClasses);
+    if(name==='blackoutSilver') document.body.classList.add('theme-blackout-silver');
+    if(name==='blackout') document.body.classList.add('theme-blackout');
+    if(signatureThemes.includes(name)) document.body.classList.add('theme-signature',`theme-${name}`);
     if(themeSelect) themeSelect.value=name;
     try{localStorage.setItem('billsTimerTheme',name);}catch(e){}
   }
