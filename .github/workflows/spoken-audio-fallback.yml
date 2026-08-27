@@ -1,0 +1,80 @@
+name: Apply spoken PWA audio fallback
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/spoken-audio-fallback.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch index.html
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          t=p.read_text()
+          anchor="  function startDing(){ playTimerCue('ding'); }\n  function boxingBell(){ if($('#soundToggle').checked) playTimerCue('finish'); }\n"
+          replacement="""  const isStandalonePWA=()=>window.matchMedia?.('(display-mode: standalone)').matches||window.navigator.standalone===true;
+
+  function speakSoundFX(text){
+    if(!$('#soundToggle').checked||!'speechSynthesis'in window) return;
+    const synth=window.speechSynthesis;
+    try{
+      if(synth.paused) synth.resume();
+      if(synth.speaking||synth.pending) synth.cancel();
+    }catch(e){}
+    setTimeout(()=>{
+      if(!$('#soundToggle').checked) return;
+      try{
+        const u=new SpeechSynthesisUtterance(text);
+        u.rate=1.65;
+        u.pitch=1.05;
+        u.volume=1;
+        const voices=synth.getVoices();
+        const preferred=voices.find(v=>/Samantha|Karen|Daniel|Alex/i.test(v.name))||voices.find(v=>v.lang?.startsWith('en'));
+        if(preferred) u.voice=preferred;
+        synth.speak(u);
+      }catch(e){}
+    },30);
+  }
+
+  function startDing(){
+    if(isStandalonePWA()) speakSoundFX('ding ding');
+    else playTimerCue('ding');
+  }
+  function boxingBell(){
+    if(!$('#soundToggle').checked) return;
+    if(isStandalonePWA()) speakSoundFX('ding ding ding');
+    else playTimerCue('finish');
+  }
+"""
+          if anchor not in t:
+              raise SystemExit('start/finish anchor not found')
+          t=t.replace(anchor,replacement,1)
+          t=t.replace("if(shown>0&&shown<=3){ playTimerCue('beep'); }","if(shown>0&&shown<=3){ if(isStandalonePWA()) speakSoundFX('tick'); else playTimerCue('beep'); }")
+          t=t.replace("if(shown>0&&shown<=5){ flashCountdown(); playTimerCue('beep'); }","if(shown>0&&shown<=5){ flashCountdown(); if(isStandalonePWA()) speakSoundFX('tick'); else playTimerCue('beep'); }")
+          t=t.replace("if(announce){ playTimerCue('beep');speak(phase==='work'?`Work. Round ${currentRound}`:'Rest'); }","if(announce){ if(isStandalonePWA()) speakSoundFX('tick'); else playTimerCue('beep');speak(phase==='work'?`Work. Round ${currentRound}`:'Rest'); }")
+          checks=[
+              'const isStandalonePWA=' in t,
+              'function speakSoundFX(text)' in t,
+              "speakSoundFX('ding ding ding')" in t,
+              "shown>0&&shown<=5){ flashCountdown(); if(isStandalonePWA()) speakSoundFX('tick')" in t,
+              'function speak(text)' in t,
+              'theme-steampunk' in t,
+              'height:100dvh' in t,
+          ]
+          if not all(checks):
+              raise SystemExit('validation failed')
+          p.write_text(t)
+          PY
+      - name: Commit repair
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Use speech synthesis for standalone PWA timer sounds"
+          git push
