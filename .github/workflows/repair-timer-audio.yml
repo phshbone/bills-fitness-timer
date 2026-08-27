@@ -1,0 +1,138 @@
+name: Repair timer audio
+
+on:
+  push:
+    paths:
+      - '.github/workflows/repair-timer-audio.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restore baseline and apply deterministic audio controller
+        shell: bash
+        run: |
+          git show da90cad72c9df366b94fa51f9b2b59922618f864:index.html > index.html
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          p=Path('index.html')
+          t=p.read_text()
+
+          start=t.find('  /* iOS fallback audio path.')
+          end=t.find('  const format = ms =>', start)
+          if start < 0 or end < 0:
+              raise SystemExit('dual-audio block not found')
+          old=t[start:end]
+          ds=old.find('  const fallbackAudio={')
+          de=old.find('\n  };', ds)
+          if ds < 0 or de < 0:
+              raise SystemExit('embedded timer sounds not found')
+          decl=old[ds+len('  const fallbackAudio={'):de].strip()
+
+          new=f'''  /* Deterministic iOS timer sound controller.
+             Non-voice cues reuse the exact HTMLAudioElement instances unlocked by
+             user interaction. Voice remains independent on speechSynthesis. */
+          const timerAudio={{
+            {decl}
+          }};
+          Object.values(timerAudio).forEach(a=>{{
+            a.preload='auto';
+            a.playsInline=true;
+            a.muted=false;
+            a.volume=.95;
+          }});
+          let timerAudioUnlocked=false;
+
+          function resetTimerAudioState(){{
+            timerAudioUnlocked=false;
+            Object.values(timerAudio).forEach(a=>{{
+              try{{a.pause();a.currentTime=0;a.muted=false;a.volume=.95;}}catch(e){{}}
+            }});
+          }}
+
+          function unlockTimerAudio(){{
+            if(!$('#soundToggle').checked) return;
+            Object.values(timerAudio).forEach(a=>{{
+              try{{
+                a.pause();a.currentTime=0;a.muted=false;a.volume=.001;
+                const q=a.play();
+                if(q&&typeof q.then==='function'){{
+                  q.then(()=>{{a.pause();a.currentTime=0;a.volume=.95;timerAudioUnlocked=true;}}).catch(()=>{{a.volume=.95;timerAudioUnlocked=false;}});
+                }} else {{a.pause();a.currentTime=0;a.volume=.95;timerAudioUnlocked=true;}}
+              }}catch(e){{a.volume=.95;timerAudioUnlocked=false;}}
+            }});
+          }}
+
+          function playTimerCue(kind){{
+            if(!$('#soundToggle').checked) return;
+            const a=timerAudio[kind];
+            if(!a) return;
+            try{{
+              a.pause();a.currentTime=0;a.muted=false;a.volume=.95;
+              const q=a.play();
+              if(q&&typeof q.then==='function') q.then(()=>{{timerAudioUnlocked=true;}}).catch(()=>{{timerAudioUnlocked=false;}});
+              else timerAudioUnlocked=true;
+            }}catch(e){{timerAudioUnlocked=false;}}
+          }}
+
+          '''
+          t=t[:start]+new+t[end:]
+
+          t=re.sub(r'  function startDing\(\)\{.*?\n  \}', "  function startDing(){ playTimerCue('ding'); }", t, count=1, flags=re.S)
+          t=re.sub(r'  function boxingBell\(\)\{.*?\n  \}', "  function boxingBell(){ if($('#soundToggle').checked) playTimerCue('finish'); }", t, count=1, flags=re.S)
+          t=t.replace("if(shown>0&&shown<=3){ if(audioHealthy()){clack(); clack(.055);}else{playFallback('beep');recoverAudio();} }", "if(shown>0&&shown<=3){ playTimerCue('beep'); }")
+          t=t.replace("if(shown>0&&shown<=5){ flashCountdown(); if(audioHealthy()){tone(610+shown*55,.16,.46); tone(915+shown*45,.12,.22,.015);}else{playFallback('beep');recoverAudio();} }", "if(shown>0&&shown<=5){ flashCountdown(); playTimerCue('beep'); }")
+          t=t.replace("if(announce){ tone(phase==='work'?880:520,.18,.2);speak(phase==='work'?`Work. Round ${currentRound}`:'Rest'); }", "if(announce){ playTimerCue('beep');speak(phase==='work'?`Work. Round ${currentRound}`:'Rest'); }")
+
+          t=t.replace("          if($('#soundToggle').checked&&audioCtx?.state!=='running') recoverAudio();\n", '')
+          t=t.replace("  function rearmMedia(){\n    recoverAudio();\n    if('speechSynthesis'in window&&speechSynthesis.paused){\n      try{speechSynthesis.resume();}catch(e){}\n    }\n  }", "  function rearmMedia(){\n    if('speechSynthesis'in window&&speechSynthesis.paused){\n      try{speechSynthesis.resume();}catch(e){}\n    }\n  }")
+          t=t.replace("document.addEventListener('pointerdown',()=>{rearmMedia();primeFallbackAudio();},{capture:true,passive:true});", "document.addEventListener('pointerdown',()=>{rearmMedia();unlockTimerAudio();},{capture:true,passive:true});")
+          t=t.replace("$('#soundToggle').addEventListener('change',e=>{if(e.target.checked){activateAudio();primeFallbackAudio();}});", "$('#soundToggle').addEventListener('change',e=>{resetTimerAudioState();if(e.target.checked)unlockTimerAudio();});")
+          t=t.replace("startBtn.onclick=()=>{activateAudio();primeFallbackAudio();state==='lead-in'?cancelLead():state==='running'?pause():start();}; resetBtn.onclick=reset; skipBtn.onclick=()=>{activateAudio();skip();};", "startBtn.onclick=()=>{unlockTimerAudio();state==='lead-in'?cancelLead():state==='running'?pause():start();}; resetBtn.onclick=reset; skipBtn.onclick=()=>{unlockTimerAudio();skip();};")
+          t=t.replace("    activateAudio();app.classList.remove('finished');", "    unlockTimerAudio();app.classList.remove('finished');")
+          t=t.replace("document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){recoverAudio(true);rearmMedia();if(state==='running'){tick();requestWake();}}});", "document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){timerAudioUnlocked=false;rearmMedia();if(state==='running'){tick();requestWake();}}});")
+          t=t.replace("playFallback('beep')", "playTimerCue('beep')")
+
+          checks=[
+              'const timerAudio={' in t,
+              'cloneNode(true)' not in t,
+              'fallbackAudio' not in t,
+              'primeFallbackAudio' not in t,
+              "function startDing(){ playTimerCue('ding'); }" in t,
+              "playTimerCue('finish')" in t,
+              "shown>0&&shown<=5){ flashCountdown(); playTimerCue('beep');" in t,
+              'speechSynthesis' in t,
+              'height:100dvh' in t,
+              'theme-steampunk' in t,
+          ]
+          if not all(checks):
+              raise SystemExit(f'validation failed: {checks}')
+          p.write_text(t)
+          PY
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          t=Path('index.html').read_text()
+          s=re.search(r'<script>(.*?)</script>',t,re.S)
+          Path('/tmp/timer.js').write_text(s.group(1))
+          PY
+          node --check /tmp/timer.js
+
+      - name: Commit repaired timer
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Use deterministic iOS timer sound controller'
+          git push
