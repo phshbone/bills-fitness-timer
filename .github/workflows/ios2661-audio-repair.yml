@@ -1,0 +1,65 @@
+name: iOS 26.6.1 audio repair
+on:
+  push:
+    paths:
+      - '.github/workflows/ios2661-audio-repair.yml'
+permissions:
+  contents: write
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch timer audio
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('index.html')
+          text=p.read_text(encoding='utf-8')
+          start=text.index('  /* Deterministic iOS timer sound controller.')
+          end=text.index('  const format = ms =>', start)
+          text=text[:start]+'''  /* iOS 26.6.1 audio path:\n     one Web Audio system only. No audible media priming and no global\n     pointerdown playback. Voice remains independent on speechSynthesis. */\n\n'''+text[end:]
+          text=text.replace("    compressor.threshold.value=-22; compressor.knee.value=16; compressor.ratio.value=8; compressor.attack.value=.002; compressor.release.value=.22;\n    masterGain=audioCtx.createGain(); masterGain.gain.value=1;","    compressor.threshold.value=-18; compressor.knee.value=12; compressor.ratio.value=6; compressor.attack.value=.002; compressor.release.value=.20;\n    masterGain=audioCtx.createGain(); masterGain.gain.value=1.28;")
+          text=re.sub(r"\n\s*setTimeout\(\(\)=>\{if\(!audioHealthy\(\)\) playTimerCue\('beep'\);\},90\);",'',text)
+          text=text.replace("      const length=Math.max(1,Math.floor(audioCtx.sampleRate*.045));","      const length=Math.max(1,Math.floor(audioCtx.sampleRate*.070));")
+          text=text.replace("filter.type='bandpass';filter.frequency.setValueAtTime(1850,t);filter.Q.setValueAtTime(1.8,t);","filter.type='bandpass';filter.frequency.setValueAtTime(1050,t);filter.Q.setValueAtTime(1.25,t);")
+          text=text.replace("      gain.gain.setValueAtTime(.9,t);gain.gain.exponentialRampToValueAtTime(.001,t+.055);\n      source.start(t);source.stop(t+.06);\n      scheduleTone(420,.045,.22,delay,'square');","      gain.gain.setValueAtTime(1.15,t);gain.gain.exponentialRampToValueAtTime(.001,t+.075);\n      source.start(t);source.stop(t+.08);\n      scheduleTone(330,.060,.34,delay,'square');\n      scheduleTone(165,.070,.18,delay,'sine');")
+          text=text.replace("  function startDing(){ playTimerCue('ding'); }\n  function boxingBell(){ if($('#soundToggle').checked) playTimerCue('finish'); }","  function startDing(){\n    if(!$('#soundToggle').checked) return;\n    recoverAudio();\n    scheduleTone(660,.16,.42,0,'sine');\n    scheduleTone(990,.22,.34,.03,'sine');\n  }\n  function boxingBell(){\n    if(!$('#soundToggle').checked) return;\n    recoverAudio();\n    scheduleTone(520,.26,.48,0,'sine');\n    scheduleTone(780,.28,.42,.12,'sine');\n    scheduleTone(1040,.34,.38,.24,'sine');\n  }")
+          text=text.replace("if(shown>0&&shown<=3){ playTimerCue('beep'); }","if(shown>0&&shown<=3){ clack(); }")
+          text=text.replace("if(shown>0&&shown<=5){ flashCountdown(); playTimerCue('beep'); }","if(shown>0&&shown<=5){ flashCountdown(); clack(); }")
+          text=text.replace("if(announce){ playTimerCue('beep');speak(","if(announce){ clack();speak(")
+          text=text.replace("    unlockTimerAudio();app.classList.remove('finished');","    recoverAudio();app.classList.remove('finished');")
+          text=text.replace("startBtn.onclick=()=>{unlockTimerAudio();state==='lead-in'?cancelLead():state==='running'?pause():start();}; resetBtn.onclick=reset; skipBtn.onclick=()=>{unlockTimerAudio();skip();};","startBtn.onclick=()=>{if($('#soundToggle').checked)recoverAudio();state==='lead-in'?cancelLead():state==='running'?pause():start();}; resetBtn.onclick=reset; skipBtn.onclick=skip;")
+          text=text.replace("  /* Any real user touch is another chance to satisfy iOS's audio-gesture rule. */\n  document.addEventListener('pointerdown',()=>{rearmMedia();unlockTimerAudio();},{capture:true,passive:true});\n","  document.addEventListener('pointerdown',rearmMedia,{capture:true,passive:true});\n")
+          text=text.replace("document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){timerAudioUnlocked=false;rearmMedia();if(state==='running'){tick();requestWake();}}});","document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){rearmMedia();if($('#soundToggle').checked)recoverAudio();if(state==='running'){tick();requestWake();}}});")
+          text=text.replace("  $('#soundToggle').addEventListener('change',e=>{resetTimerAudioState();if(e.target.checked)unlockTimerAudio();});","  $('#soundToggle').addEventListener('change',e=>{if(e.target.checked)recoverAudio();else disposeAudio();});")
+          for bad in ['unlockTimerAudio','playTimerCue','timerAudioUnlocked','const timerAudio=']:
+              assert bad not in text, bad
+          assert 'masterGain.gain.value=1.28' in text
+          assert 'shown>0&&shown<=5){ flashCountdown(); clack();' in text
+          assert 'function speak(text)' in text
+          assert 'const total=m*60+s' in text
+          assert 'theme-steampunk' in text and 'theme-oldradio' in text
+          p.write_text(text,encoding='utf-8')
+          PY
+      - name: Validate JavaScript syntax
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          t=Path('index.html').read_text()
+          s=re.search(r'<script>\s*(.*?)\s*</script>',t,re.S).group(1)
+          Path('/tmp/timer.js').write_text(s)
+          PY
+          node --check /tmp/timer.js
+      - name: Commit repair
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m 'Repair timer audio for iOS 26.6.1'
+          git push
