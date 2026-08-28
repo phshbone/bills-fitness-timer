@@ -35,3 +35,4 @@ jobs:
           git add index.html
           git commit -m 'Add Rugged Handheld signature theme v2'
           git push
+# trigger corrected deployment
