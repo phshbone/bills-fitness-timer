@@ -654,8 +654,8 @@
   const format = ms => { const s=Math.max(0,Math.ceil(ms/1000)); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; };
   function buildAudioGraph(){
     compressor=audioCtx.createDynamicsCompressor();
-    compressor.threshold.value=-18; compressor.knee.value=12; compressor.ratio.value=6; compressor.attack.value=.002; compressor.release.value=.20;
-    masterGain=audioCtx.createGain(); masterGain.gain.value=1.28;
+    compressor.threshold.value=-20; compressor.knee.value=8; compressor.ratio.value=8; compressor.attack.value=.001; compressor.release.value=.14;
+    masterGain=audioCtx.createGain(); masterGain.gain.value=3.2;
     compressor.connect(masterGain); masterGain.connect(audioCtx.destination);
   }
   function activateAudio(){
@@ -710,10 +710,13 @@
       const t=audioCtx.currentTime+delay;
       source.buffer=buffer;filter.type='bandpass';filter.frequency.setValueAtTime(1050,t);filter.Q.setValueAtTime(1.25,t);
       source.connect(filter);filter.connect(gain);gain.connect(compressor);
-      gain.gain.setValueAtTime(1.15,t);gain.gain.exponentialRampToValueAtTime(.001,t+.075);
+      gain.gain.setValueAtTime(1.55,t);gain.gain.exponentialRampToValueAtTime(.001,t+.085);
       source.start(t);source.stop(t+.08);
-      scheduleTone(330,.060,.34,delay,'square');
-      scheduleTone(165,.070,.18,delay,'sine');
+      scheduleTone(420,.070,.54,delay,'square');
+      scheduleTone(840,.050,.46,delay,'square');
+      scheduleTone(1680,.038,.34,delay+.002,'square');
+      scheduleTone(2400,.028,.22,delay+.003,'square');
+      scheduleTone(210,.080,.24,delay,'sine');
     }catch(e){}
   }
   function clack(delay=0){
@@ -731,15 +734,23 @@
   function startDing(){
     if(!$('#soundToggle').checked) return;
     recoverAudio();
-    scheduleTone(660,.16,.42,0,'sine');
-    scheduleTone(990,.22,.34,.03,'sine');
+    scheduleTone(740,.18,.78,0,'triangle');
+    scheduleTone(1110,.24,.68,.025,'triangle');
+    scheduleTone(1480,.20,.54,.045,'square');
+    scheduleTone(2220,.14,.32,.055,'square');
   }
   function boxingBell(){
     if(!$('#soundToggle').checked) return;
     recoverAudio();
-    scheduleTone(520,.26,.48,0,'sine');
-    scheduleTone(780,.28,.42,.12,'sine');
-    scheduleTone(1040,.34,.38,.24,'sine');
+    scheduleTone(620,.26,.88,0,'triangle');
+    scheduleTone(930,.30,.82,.03,'triangle');
+    scheduleTone(1240,.34,.72,.06,'square');
+    scheduleTone(1860,.28,.54,.09,'square');
+    scheduleTone(2480,.20,.38,.11,'square');
+    scheduleTone(620,.24,.82,.34,'triangle');
+    scheduleTone(930,.28,.74,.37,'triangle');
+    scheduleTone(1240,.30,.62,.40,'square');
+    scheduleTone(1860,.24,.46,.43,'square');
   }
   function speak(text){
     if($('#voiceToggle').checked&&'speechSynthesis'in window){
