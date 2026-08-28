@@ -1,0 +1,50 @@
+name: Deploy max loudness v3
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/deploy-max-loudness-v3.yml'
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch audio loudness only
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          reps={
+          "compressor.threshold.value=-18; compressor.knee.value=12; compressor.ratio.value=6; compressor.attack.value=.002; compressor.release.value=.20;\n    masterGain=audioCtx.createGain(); masterGain.gain.value=1.28;":"compressor.threshold.value=-20; compressor.knee.value=8; compressor.ratio.value=8; compressor.attack.value=.001; compressor.release.value=.14;\n    masterGain=audioCtx.createGain(); masterGain.gain.value=3.2;",
+          "gain.gain.setValueAtTime(1.15,t);gain.gain.exponentialRampToValueAtTime(.001,t+.075);":"gain.gain.setValueAtTime(1.55,t);gain.gain.exponentialRampToValueAtTime(.001,t+.085);",
+          "scheduleTone(330,.060,.34,delay,'square');\n      scheduleTone(165,.070,.18,delay,'sine');":"scheduleTone(420,.070,.54,delay,'square');\n      scheduleTone(840,.050,.46,delay,'square');\n      scheduleTone(1680,.038,.34,delay+.002,'square');\n      scheduleTone(2400,.028,.22,delay+.003,'square');\n      scheduleTone(210,.080,.24,delay,'sine');",
+          "scheduleTone(660,.16,.42,0,'sine');\n    scheduleTone(990,.22,.34,.03,'sine');":"scheduleTone(740,.18,.78,0,'triangle');\n    scheduleTone(1110,.24,.68,.025,'triangle');\n    scheduleTone(1480,.20,.54,.045,'square');\n    scheduleTone(2220,.14,.32,.055,'square');",
+          "scheduleTone(520,.26,.48,0,'sine');\n    scheduleTone(780,.28,.42,.12,'sine');\n    scheduleTone(1040,.34,.38,.24,'sine');":"scheduleTone(620,.26,.88,0,'triangle');\n    scheduleTone(930,.30,.82,.03,'triangle');\n    scheduleTone(1240,.34,.72,.06,'square');\n    scheduleTone(1860,.28,.54,.09,'square');\n    scheduleTone(2480,.20,.38,.11,'square');\n    scheduleTone(620,.24,.82,.34,'triangle');\n    scheduleTone(930,.28,.74,.37,'triangle');\n    scheduleTone(1240,.30,.62,.40,'square');\n    scheduleTone(1860,.24,.46,.43,'square');"
+          }
+          for a,b in reps.items():
+              if a not in s:
+                  raise SystemExit('Expected audio anchor missing: '+a[:60])
+              s=s.replace(a,b,1)
+          p.write_text(s)
+          PY
+      - name: Validate JavaScript
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          s=Path('index.html').read_text()
+          m=re.search(r'<script>\s*(.*?)\s*</script>',s,re.S)
+          assert m
+          Path('/tmp/check.js').write_text(m.group(1))
+          PY
+          node --check /tmp/check.js
+      - name: Commit deployed build
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Increase timer cue loudness for iPhone speaker'
+          git push
